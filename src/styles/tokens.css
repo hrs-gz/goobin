@@ -1,0 +1,106 @@
+:root {
+  --bg-page: #f7f5f2;
+  --bg-tray: #ebe6df;
+  --bg-tile: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-muted: #6b6560;
+  --border-soft: #d4cec6;
+  --shadow-tray: 0 20px 50px rgba(26, 26, 26, 0.12),
+    inset 0 2px 4px rgba(255, 255, 255, 0.6);
+  --accent: #ff2d8a;
+  --accent-secondary: #ff6eb4;
+  --gold-start: #ffd700;
+  --gold-end: #ffb347;
+  --squircle-radius: 28% / 32%;
+  --markup-black: #1a1a1a;
+  --markup-pink: #ff2d8a;
+  --markup-blue: #2d7bff;
+  --markup-green: #39ff14;
+  --markup-white: #f5f5f0;
+}
+
+[data-theme="dark"] {
+  --bg-page: #1c1c1e;
+  --bg-tray: #2a2a2c;
+  --bg-tile: #3a3a3c;
+  --text-primary: #f5f5f0;
+  --text-muted: #a8a29e;
+  --border-soft: #4a4a4c;
+  --shadow-tray: 0 20px 50px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.05);
+}
+
+[data-theme="neon-pink"] {
+  --accent: #ff2d8a;
+  --accent-secondary: #ff6eb4;
+}
+
+[data-theme="electric-blue"] {
+  --accent: #2d7bff;
+  --accent-secondary: #5ca3ff;
+}
+
+[data-theme="toxic-green"] {
+  --accent: #39ff14;
+  --accent-secondary: #7aff5c;
+}
+
+[data-theme="warm-yellow"] {
+  --accent: #ffd60a;
+  --accent-secondary: #ffe566;
+}
+
+[data-theme="coral-orange"] {
+  --accent: #ff6b4a;
+  --accent-secondary: #ff9478;
+}
+
+[data-theme="lavender"] {
+  --accent: #b57edc;
+  --accent-secondary: #d4a8f0;
+}
+
+.squircle {
+  border-radius: var(--squircle-radius);
+}
+
+@keyframes borderShine {
+  0% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+
+@keyframes glitch {
+  0% {
+    transform: translate(0);
+    filter: hue-rotate(0deg);
+  }
+  20% {
+    transform: translate(-2px, 1px);
+    filter: hue-rotate(90deg);
+  }
+  40% {
+    transform: translate(2px, -1px);
+    filter: hue-rotate(180deg);
+  }
+  60% {
+    transform: translate(-1px, 2px);
+  }
+  80% {
+    transform: translate(1px, -2px);
+    filter: hue-rotate(270deg);
+  }
+  100% {
+    transform: translate(0);
+  }
+}
+
+.glitch-active {
+  animation: glitch 0.3s infinite;
+}

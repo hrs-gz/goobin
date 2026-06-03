@@ -1,0 +1,30 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-background: var(--bg-page);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-body);
+  --font-display: var(--font-display);
+}
+
+[data-color-mode="dark"] {
+  --bg-page: #1c1c1e;
+  --bg-tray: #2a2a2c;
+  --bg-tile: #3a3a3c;
+  --text-primary: #f5f5f0;
+  --text-muted: #a8a29e;
+  --border-soft: #4a4a4c;
+  --shadow-tray: 0 20px 50px rgba(0, 0, 0, 0.4),
+    inset 0 2px 4px rgba(255, 255, 255, 0.05);
+}
+
+body {
+  background: var(--bg-page);
+  color: var(--text-primary);
+  font-family: var(--font-body), system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-display), system-ui, sans-serif;
+}
