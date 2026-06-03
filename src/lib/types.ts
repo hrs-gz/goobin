@@ -90,3 +90,30 @@ export interface PlaySession {
   boardId: string;
   tiles: Record<string, TileSessionData>;
 }
+
+export type BoardStatus = "in_progress" | "completed";
+
+export interface BoardRecord {
+  id: string;
+  user_id: string;
+  title: string;
+  theme_id: ThemeId;
+  definition: BoardDefinition;
+  status: BoardStatus;
+  progress: PlaySession;
+  completed_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface CreateBoardInput {
+  definition: BoardDefinition;
+  latitude?: number;
+  longitude?: number;
+  location_label?: string;
+  is_public?: boolean;
+}

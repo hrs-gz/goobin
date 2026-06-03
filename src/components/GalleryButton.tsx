@@ -28,7 +28,7 @@ export function GalleryButton({ onSelect, disabled }: GalleryButtonProps) {
         type="button"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="min-h-[48px] min-w-[48px] squircle flex items-center justify-center bg-[var(--bg-tile)] border border-[var(--border-soft)] hover:bg-black/5 transition-colors disabled:opacity-40"
+        className="min-h-[48px] min-w-[48px] squircle-sm flex items-center justify-center bg-[var(--bg-tile)] border border-[var(--border-soft)] hover:bg-black/5 transition-colors disabled:opacity-40"
         aria-label="Upload from gallery"
       >
         <ImagePlus className="w-6 h-6" strokeWidth={2} />

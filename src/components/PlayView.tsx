@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "./AppShell";
 import { BoardTray } from "./BoardTray";
@@ -8,6 +8,7 @@ import { BingoBoard } from "./BingoBoard";
 import { TileSpinOutCard } from "./TileSpinOutCard";
 import { FreeSpaceToast } from "./FreeSpaceToast";
 import { useBoardStore } from "@/hooks/useBoardStore";
+import type { ThemeId } from "@/lib/types";
 import {
   downloadBlob,
   exportBoardElement,
@@ -16,9 +17,19 @@ import {
 
 interface PlayViewProps {
   encodedBoard?: string | null;
+  cloudBoardId?: string | null;
+  readOnly?: boolean;
 }
 
-export function PlayView({ encodedBoard }: PlayViewProps) {
+function themeStorageKey(boardId: string) {
+  return `goobin-theme-${boardId}`;
+}
+
+export function PlayView({
+  encodedBoard,
+  cloudBoardId,
+  readOnly = false,
+}: PlayViewProps) {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
 
@@ -37,7 +48,25 @@ export function PlayView({ encodedBoard }: PlayViewProps) {
     isFreeSpaceGlitch,
     cardFlipped,
     setCardFlipped,
-  } = useBoardStore(encodedBoard);
+    boardId,
+  } = useBoardStore({ encodedBoard, cloudBoardId, readOnly });
+
+  const [themeRevision, setThemeRevision] = useState(0);
+
+  const themeId = useMemo(() => {
+    if (typeof window === "undefined") return board.themeId;
+    void themeRevision;
+    const stored = localStorage.getItem(themeStorageKey(boardId)) as ThemeId | null;
+    return stored ?? board.themeId;
+  }, [boardId, board.themeId, themeRevision]);
+
+  const handleThemeChange = useCallback(
+    (id: ThemeId) => {
+      localStorage.setItem(themeStorageKey(boardId), id);
+      setThemeRevision((n) => n + 1);
+    },
+    [boardId]
+  );
 
   const handleShare = useCallback(async () => {
     if (!exportRef.current) return;
@@ -53,7 +82,7 @@ export function PlayView({ encodedBoard }: PlayViewProps) {
 
   if (loading) {
     return (
-      <AppShell themeId={board.themeId}>
+      <AppShell themeId={themeId} onThemeChange={handleThemeChange}>
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[var(--text-muted)]">Loading board...</p>
         </div>
@@ -63,7 +92,8 @@ export function PlayView({ encodedBoard }: PlayViewProps) {
 
   return (
     <AppShell
-      themeId={board.themeId}
+      themeId={themeId}
+      onThemeChange={handleThemeChange}
       onShare={handleShare}
       showBuildLink
     >
@@ -82,7 +112,6 @@ export function PlayView({ encodedBoard }: PlayViewProps) {
             board={board}
             onTileTap={openTile}
             isFreeSpaceGlitch={isFreeSpaceGlitch}
-            selectedTileId={selectedTileId}
           />
         </BoardTray>
       </motion.div>
@@ -102,12 +131,20 @@ export function PlayView({ encodedBoard }: PlayViewProps) {
       {selectedTile && selectedTileId && (
         <TileSpinOutCard
           tile={selectedTile}
-          layoutId={`tile-${selectedTile.id}`}
           onClose={closeCard}
-          onPhoto={(file) => completeTileWithPhoto(selectedTile.id, file)}
-          onSaveMarkup={(data) => saveMarkup(selectedTile.id, data)}
+          onPhoto={
+            readOnly
+              ? undefined
+              : (file) => completeTileWithPhoto(selectedTile.id, file)
+          }
+          onSaveMarkup={
+            readOnly
+              ? undefined
+              : (data) => saveMarkup(selectedTile.id, data)
+          }
           flipped={cardFlipped}
           onFlip={() => setCardFlipped(!cardFlipped)}
+          readOnly={readOnly}
         />
       )}
     </AppShell>

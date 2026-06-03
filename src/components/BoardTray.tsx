@@ -20,7 +20,7 @@ export function BoardTray({
   return (
     <div
       ref={exportRef}
-      className="w-full max-w-[min(100%,420px)] mx-auto"
+      className="w-full max-w-[min(100%,480px)] mx-auto"
       data-export-root
     >
       {title && (
@@ -41,7 +41,7 @@ export function BoardTray({
         </p>
       )}
       <div
-        className="squircle p-4 sm:p-5"
+        className="squircle-lg p-2 sm:p-3"
         style={{
           background: "var(--bg-tray)",
           boxShadow: "var(--shadow-tray)",

@@ -29,8 +29,12 @@ const IMPATIENT = [
   "Okay, fine, keep going.",
 ];
 
+export function isFreeSpaceUnlocked(tapCount: number): boolean {
+  return tapCount >= 21;
+}
+
 export function getFreeSpaceState(tapCount: number): FreeSpaceState {
-  if (tapCount >= 21) return "glitched";
+  if (tapCount >= 21) return "unlocked";
   if (tapCount >= 11) return "impatient";
   return "standard";
 }

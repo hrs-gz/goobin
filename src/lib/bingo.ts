@@ -17,7 +17,7 @@ export const LINES_5: number[][] = [
 
 export function isTileComplete(tile: Tile): boolean {
   if (tile.isFreeSpace) {
-    return Boolean(tile.completedAt);
+    return Boolean(tile.photoUrl || tile.completedAt);
   }
   return Boolean(tile.photoUrl || tile.completedAt);
 }

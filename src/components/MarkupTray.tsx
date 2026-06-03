@@ -39,7 +39,7 @@ export function MarkupTray({
             type="button"
             onClick={() => onToolChange(id)}
             aria-label={label}
-            className={`min-h-11 min-w-11 squircle flex items-center justify-center ${
+            className={`min-h-11 min-w-11 squircle-sm flex items-center justify-center ${
               activeTool === id
                 ? "bg-[var(--accent)] text-white"
                 : "bg-[var(--bg-tile)]"

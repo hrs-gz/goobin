@@ -14,7 +14,7 @@ export function MarkupButton({ onClick, disabled, active }: MarkupButtonProps) {
       type="button"
       disabled={disabled}
       onClick={onClick}
-      className={`min-h-[48px] min-w-[48px] squircle flex items-center justify-center border transition-colors disabled:opacity-40 ${
+      className={`min-h-[48px] min-w-[48px] squircle-sm flex items-center justify-center border transition-colors disabled:opacity-40 ${
         active
           ? "bg-[var(--accent)] text-white border-[var(--accent)]"
           : "bg-[var(--bg-tile)] border-[var(--border-soft)] hover:bg-black/5"

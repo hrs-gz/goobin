@@ -19,7 +19,7 @@ export function IconPicker({ value, onChange }: IconPickerProps) {
           key={icon}
           type="button"
           onClick={() => onChange(icon)}
-          className={`w-9 h-9 squircle text-lg flex items-center justify-center ${
+          className={`w-9 h-9 squircle-sm text-lg flex items-center justify-center ${
             value === icon ? "ring-2 ring-[var(--accent)] bg-[var(--bg-tray)]" : ""
           }`}
         >

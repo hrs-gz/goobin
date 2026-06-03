@@ -16,7 +16,7 @@ export function ColorSwatch({
       type="button"
       onClick={onSelect}
       aria-label={label}
-      className={`w-9 h-9 squircle border-2 transition-transform ${
+      className={`w-9 h-9 squircle-sm border-2 transition-transform ${
         selected ? "scale-110 border-[var(--text-primary)]" : "border-transparent"
       }`}
       style={{ backgroundColor: color }}

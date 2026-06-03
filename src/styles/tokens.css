@@ -11,7 +11,9 @@
   --accent-secondary: #ff6eb4;
   --gold-start: #ffd700;
   --gold-end: #ffb347;
-  --squircle-radius: 28% / 32%;
+  --squircle-radius-sm: min(22.5%, 10px);
+  --squircle-radius-md: 22.5%;
+  --squircle-radius-lg: min(22.5%, 20px);
   --markup-black: #1a1a1a;
   --markup-pink: #ff2d8a;
   --markup-blue: #2d7bff;
@@ -61,7 +63,15 @@
 }
 
 .squircle {
-  border-radius: var(--squircle-radius);
+  border-radius: var(--squircle-radius-md);
+}
+
+.squircle-sm {
+  border-radius: var(--squircle-radius-sm);
+}
+
+.squircle-lg {
+  border-radius: var(--squircle-radius-lg);
 }
 
 @keyframes borderShine {

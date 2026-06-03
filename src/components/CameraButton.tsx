@@ -29,7 +29,7 @@ export function CameraButton({ onCapture, disabled }: CameraButtonProps) {
         type="button"
         disabled={disabled}
         onClick={() => inputRef.current?.click()}
-        className="min-h-[56px] min-w-[56px] squircle flex items-center justify-center bg-[var(--accent)] text-white shadow-lg hover:opacity-90 disabled:opacity-40 transition-opacity"
+        className="min-h-[56px] min-w-[56px] squircle-sm flex items-center justify-center bg-[var(--accent)] text-white shadow-lg hover:opacity-90 disabled:opacity-40 transition-opacity"
         aria-label="Take photo"
       >
         <Camera className="w-7 h-7" strokeWidth={2} />

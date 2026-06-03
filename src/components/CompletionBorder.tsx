@@ -16,12 +16,11 @@ export function CompletionBorder({
   className,
 }: CompletionBorderProps) {
   const borderClass = cn(
-    "relative transition-all duration-400 squircle p-3",
-    tier === "standard" && "ring-2 ring-[var(--border-soft)]",
+    "relative transition-all duration-400 squircle w-full",
+    tier === "standard" && "p-0",
     tier === "dualTone" &&
-      "ring-[3px] ring-offset-2 ring-offset-[var(--bg-tray)] ring-[var(--accent)]",
-    tier === "goldBlackout" &&
-      "ring-[4px] ring-offset-2 ring-offset-[var(--bg-tray)]",
+      "p-1 ring-[3px] ring-[var(--accent)] ring-offset-0",
+    tier === "goldBlackout" && "p-1",
     className
   );
 

@@ -33,3 +33,27 @@ Next.js, React, Tailwind CSS, Framer Motion, IndexedDB, Konva, html-to-image, lz
 - Board definitions: URL (`?b=` compressed JSON)
 - Photos and progress: browser IndexedDB (no account required)
 - Free Space tap count: localStorage per board
+
+## Supabase (cloud accounts)
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. Copy **Project URL** and **anon key** into `.env.local` (see `.env.local.example`).
+3. Apply the schema:
+
+   ```bash
+   npx supabase link --project-ref YOUR_REF   # optional, if using CLI
+   npx supabase db push                       # or paste supabase/migrations/20250603120000_boards.sql in SQL Editor
+   ```
+
+4. In **Authentication → URL configuration**, add redirect URL:  
+   `http://localhost:3000/auth/callback` (and your production URL).
+5. Optional: create Storage bucket `tile-photos` and apply policies from comments in the migration file (progress sync works without it; photos stay in IndexedDB for now).
+
+### Cloud routes
+
+- **/login**, **/signup** — email/password auth
+- **/history** — your in-progress and completed (blackout) boards; delete from here
+- **/discover** — public boards near you (requires location + sign-in)
+- **/play/cloud/[id]** — play a saved board; syncs progress when you own it; completed boards open read-only
+
+URL-based **/play?b=** and the demo on **/** still work without an account.
