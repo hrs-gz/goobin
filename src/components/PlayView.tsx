@@ -10,9 +10,8 @@ import { FreeSpaceChallengeModal } from "./FreeSpaceChallengeModal";
 import { FreeSpaceToast } from "./FreeSpaceToast";
 import { PlayBoardDock } from "./PlayBoardDock";
 import { useAccentTheme } from "@/hooks/useAccentTheme";
-import { useAchievements } from "@/hooks/useAchievements";
 import { useBoardStore } from "@/hooks/useBoardStore";
-import { useFreeSpaceUnlock } from "@/hooks/useFreeSpaceUnlock";
+import { useAchievements, useFreeSpaceUnlock } from "@/providers/AchievementsProvider";
 import { updateBoardTheme } from "@/lib/cloud/boards";
 import type { ThemeId } from "@/lib/types";
 import {
@@ -51,6 +50,7 @@ export function PlayView({
     selectedTileId,
     openTile,
     closeCard,
+    resetBoard,
     completeTileWithPhoto,
     saveMarkup,
     freeSpaceMessage,
@@ -130,6 +130,7 @@ export function PlayView({
       defaultThemeId={board.themeId}
       onShare={handleShare}
       showBuildLink
+      onResetBoard={readOnly ? undefined : resetBoard}
     >
       <motion.div
         className={`w-full flex flex-col items-center ${showBoardDock ? "pb-20" : ""}`}
@@ -145,7 +146,7 @@ export function PlayView({
           <BingoBoard
             board={board}
             onTileTap={openTile}
-            isFreeSpaceGlitch={isFreeSpaceGlitch}
+            globalGoobUnlocked={globalGoobUnlocked}
           />
         </BoardTray>
       </motion.div>

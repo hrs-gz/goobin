@@ -6,9 +6,11 @@ import { createClient } from "@/lib/supabase/client";
 
 interface AuthFormProps {
   mode: "login" | "signup";
+  /** Post-login path (validated server-side on login page). */
+  redirectTo?: string;
 }
 
-export function AuthForm({ mode }: AuthFormProps) {
+export function AuthForm({ mode, redirectTo = "/history" }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -43,7 +45,7 @@ export function AuthForm({ mode }: AuthFormProps) {
       setMessage(error.message);
       return;
     }
-    window.location.href = "/history";
+    window.location.href = redirectTo;
   };
 
   return (

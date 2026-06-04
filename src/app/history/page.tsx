@@ -1,33 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AppShell } from "@/components/AppShell";
 import { BoardLibraryCard } from "@/components/BoardLibraryCard";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { deleteBoard, listUserBoards } from "@/lib/cloud/boards";
 import type { BoardRecord } from "@/lib/types";
 
 export default function HistoryPage() {
   const { user, loading: authLoading } = useAuth();
   const [boards, setBoards] = useState<BoardRecord[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [boardsLoading, setBoardsLoading] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const list = await listUserBoards();
-    setBoards(list);
-    setLoading(false);
-  }, []);
-
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-    void load();
-  }, [user, load]);
+    if (!user) return;
+    let cancelled = false;
+    void (async () => {
+      setBoardsLoading(true);
+      const list = await listUserBoards();
+      if (cancelled) return;
+      setBoards(list);
+      setBoardsLoading(false);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
 
   const inProgress = useMemo(
     () => boards.filter((b) => b.status === "in_progress"),
@@ -62,7 +62,7 @@ export default function HistoryPage() {
             Sign in to save progress and revisit completed blackouts.
           </p>
           <Link
-            href="/login"
+            href="/login?next=/history"
             className="inline-block py-3 px-6 squircle bg-[var(--accent)] text-white font-medium"
           >
             Sign in
@@ -75,7 +75,7 @@ export default function HistoryPage() {
   return (
     <AppShell title="History">
       <div className="w-full max-w-lg space-y-8">
-        {loading ? (
+        {boardsLoading ? (
           <p className="text-[var(--text-muted)]">Loading boards...</p>
         ) : boards.length === 0 ? (
           <div className="text-center space-y-4 py-8">

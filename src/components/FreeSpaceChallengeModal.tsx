@@ -63,11 +63,12 @@ export function FreeSpaceChallengeModal({
               </button>
             </div>
             <p className="text-sm text-[var(--text-muted)]">
-              {GOOB_CHALLENGE_COPY}
+              You reached 21 center taps on this board. {GOOB_CHALLENGE_COPY}
             </p>
             <p className="text-sm text-[var(--text-muted)]">
-              After this one-time unlock, you still need 21 taps on the center
-              of each board to open its photo.
+              This one-time account unlock does not skip the 21-tap ritual on
+              other boards — each board still needs its own center taps for a
+              photo.
             </p>
             {typeof navigator !== "undefined" && "share" in navigator && (
               <button

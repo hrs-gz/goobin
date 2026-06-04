@@ -23,20 +23,20 @@ import {
 import {
   buildAchievementContext,
   evaluateNewAchievements,
-  getLocalEarnedIds,
 } from "@/lib/achievements/engine";
+import {
+  getLocalEarnedIds,
+  setFreeSpaceUnlockedLocal,
+  setLocalEarnedIds,
+} from "@/lib/achievements/local";
 import {
   hydrateEarnedIds,
   hydrateFreeSpaceUnlocked,
   syncFreeSpaceToCloud,
   syncLocalEarnedToCloud,
 } from "@/lib/achievements/sync";
-import {
-  setFreeSpaceUnlockedLocal,
-  setLocalEarnedIds,
-} from "@/lib/achievements/local";
 import { emitAchievementToast } from "@/lib/achievementToasts";
-import { useAuthContext } from "./AuthProvider";
+import { useAuth } from "./AuthProvider";
 
 interface AchievementsContextValue {
   earnedIds: Set<AchievementId>;
@@ -56,7 +56,7 @@ interface AchievementsContextValue {
 const AchievementsContext = createContext<AchievementsContextValue | null>(null);
 
 export function AchievementsProvider({ children }: { children: ReactNode }) {
-  const { user } = useAuthContext();
+  const { user } = useAuth();
   const userId = user?.id ?? null;
   const [earnedIds, setEarnedIds] = useState<Set<AchievementId>>(new Set());
   const [ready, setReady] = useState(false);
@@ -199,7 +199,7 @@ export function AchievementsProvider({ children }: { children: ReactNode }) {
   );
 }
 
-export function useAchievementsContext(): AchievementsContextValue {
+export function useAchievements(): AchievementsContextValue {
   const ctx = useContext(AchievementsContext);
   if (!ctx) {
     throw new Error(
@@ -207,4 +207,13 @@ export function useAchievementsContext(): AchievementsContextValue {
     );
   }
   return ctx;
+}
+
+export function useFreeSpaceUnlock() {
+  const { freeSpaceUnlocked, unlockFreeSpace } = useAchievements();
+
+  return {
+    unlocked: freeSpaceUnlocked,
+    unlock: unlockFreeSpace,
+  };
 }

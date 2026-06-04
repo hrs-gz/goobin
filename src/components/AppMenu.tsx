@@ -2,8 +2,9 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import Link from "next/link";
-import { Moon, Sun, X } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { Moon, RotateCcw, Sun, X } from "lucide-react";
+import { useAuth } from "@/providers/AuthProvider";
 import type { ColorMode } from "@/hooks/useTheme";
 import type { ThemeId } from "@/lib/types";
 import { ThemePillPicker } from "./ThemePillPicker";
@@ -16,6 +17,7 @@ interface AppMenuProps {
   themeId: ThemeId;
   onThemeChange: (theme: ThemeId) => void;
   showBuildLink?: boolean;
+  onResetBoard?: () => void | Promise<void>;
 }
 
 export function AppMenu({
@@ -26,8 +28,25 @@ export function AppMenu({
   themeId,
   onThemeChange,
   showBuildLink = true,
+  onResetBoard,
 }: AppMenuProps) {
   const { user, loading: authLoading, signOut } = useAuth();
+  const [resetting, setResetting] = useState(false);
+
+  const handleResetBoard = async () => {
+    if (!onResetBoard || resetting) return;
+    const confirmed = window.confirm(
+      "Clear all photos and progress for this board on this device? This cannot be undone."
+    );
+    if (!confirmed) return;
+    setResetting(true);
+    try {
+      await onResetBoard();
+      onClose();
+    } finally {
+      setResetting(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -100,6 +119,17 @@ export function AppMenu({
               >
                 Discover
               </Link>
+              {onResetBoard && (
+                <button
+                  type="button"
+                  onClick={() => void handleResetBoard()}
+                  disabled={resetting}
+                  className="min-h-11 px-4 flex items-center gap-2 rounded-full hover:bg-black/5 font-medium text-left text-red-600 disabled:opacity-50"
+                >
+                  <RotateCcw className="w-4 h-4 shrink-0" aria-hidden />
+                  {resetting ? "Resetting..." : "Reset board"}
+                </button>
+              )}
               {!authLoading && (
                 user ? (
                   <button

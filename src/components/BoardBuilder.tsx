@@ -7,9 +7,8 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "./AppShell";
 import { PromptEditor } from "./PromptEditor";
 import { IconPicker } from "./IconPicker";
-import { useAchievements } from "@/hooks/useAchievements";
-import { useAuth } from "@/hooks/useAuth";
-import { useFreeSpaceUnlock } from "@/hooks/useFreeSpaceUnlock";
+import { useAchievements, useFreeSpaceUnlock } from "@/providers/AchievementsProvider";
+import { useAuth } from "@/providers/AuthProvider";
 import { createBoard } from "@/lib/cloud/boards";
 import {
   buildPlayUrl,
@@ -112,7 +111,7 @@ export function BoardBuilder() {
       }
     }
 
-    const record = await createBoard({
+    const result = await createBoard({
       definition,
       latitude,
       longitude,
@@ -122,12 +121,12 @@ export function BoardBuilder() {
     });
 
     setSaving(false);
-    if (!record) {
-      setSaveError("Could not save board. Check you are signed in.");
+    if (!result.ok) {
+      setSaveError(result.error);
       return;
     }
     await checkAndAward({ freeSpaceUnlocked: globalGoobUnlocked });
-    router.push(`/play/cloud/${record.id}`);
+    router.push(`/play/cloud/${result.record.id}`);
   };
 
   return (

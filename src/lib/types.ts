@@ -6,7 +6,7 @@ export type BorderTier =
   | "goldBlackout"
   | "iridescentSecret";
 
-export type FreeSpaceState = "standard" | "impatient" | "glitched" | "unlocked";
+export type FreeSpaceState = "standard" | "impatient" | "glitched";
 
 export type ThemeId =
   | "neon-pink"

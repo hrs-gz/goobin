@@ -1,7 +1,15 @@
 import Link from "next/link";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { safeAuthRedirect } from "@/lib/authRedirect";
 
-export default function LoginPage() {
+type LoginPageProps = {
+  searchParams: Promise<{ next?: string }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const { next } = await searchParams;
+  const redirectTo = safeAuthRedirect(next);
+
   return (
     <div className="min-h-dvh flex flex-col items-center justify-center px-4 bg-[var(--bg-page)]">
       <div className="w-full max-w-sm space-y-6">
@@ -11,7 +19,7 @@ export default function LoginPage() {
             Save boards and track your bingos
           </p>
         </div>
-        <AuthForm mode="login" />
+        <AuthForm mode="login" redirectTo={redirectTo} />
         <p className="text-center text-sm">
           <Link href="/" className="text-[var(--text-muted)] hover:underline">
             Back to demo

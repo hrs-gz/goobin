@@ -1,7 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "framer-motion";
-import { Trophy, X } from "lucide-react";
+import { X } from "lucide-react";
 import type { AchievementDefinition } from "@/lib/achievements/catalog";
 
 interface AchievementToastProps {

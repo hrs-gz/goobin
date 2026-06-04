@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { BoardLibraryCard } from "@/components/BoardLibraryCard";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { discoverNearby } from "@/lib/cloud/boards";
 import type { DiscoverBoard } from "@/lib/cloud/boards";
 
@@ -13,12 +13,20 @@ function DiscoverPageContent() {
   const searchParams = useSearchParams();
   const autoSearch = searchParams.get("auto") === "1";
   const autoRan = useRef(false);
+  const mountedRef = useRef(true);
 
   const { user, loading: authLoading } = useAuth();
   const [boards, setBoards] = useState<DiscoverBoard[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const searchNearby = useCallback(async () => {
     setError(null);
@@ -38,10 +46,12 @@ function DiscoverPageContent() {
           pos.coords.longitude,
           25
         );
+        if (!mountedRef.current) return;
         setBoards(list);
         setLoading(false);
       },
       () => {
+        if (!mountedRef.current) return;
         setError("Location permission denied. Enable location to discover boards.");
         setLoading(false);
       },

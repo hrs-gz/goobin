@@ -4,9 +4,8 @@ import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { Check } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
-import { useAuth } from "@/hooks/useAuth";
-import { useAchievements } from "@/hooks/useAchievements";
-import { useFreeSpaceUnlock } from "@/hooks/useFreeSpaceUnlock";
+import { useAuth } from "@/providers/AuthProvider";
+import { useAchievements, useFreeSpaceUnlock } from "@/providers/AchievementsProvider";
 import { ACHIEVEMENT_CATALOG } from "@/lib/achievements/catalog";
 
 export default function AchievementsPage() {

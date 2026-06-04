@@ -63,6 +63,22 @@ export function setFreeSpaceTapCount(boardId: string, count: number): void {
   localStorage.setItem(`${FREE_SPACE_KEY_PREFIX}${boardId}`, String(count));
 }
 
+export function clearFreeSpaceTapCount(boardId: string): void {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(`${FREE_SPACE_KEY_PREFIX}${boardId}`);
+}
+
+export async function clearBoardLocalProgress(boardId: string): Promise<void> {
+  const session = await loadSession(boardId);
+  if (session) {
+    for (const data of Object.values(session.tiles)) {
+      if (data.photoBlobId) await deletePhotoBlob(data.photoBlobId);
+    }
+    await del(boardId, sessionStore);
+  }
+  clearFreeSpaceTapCount(boardId);
+}
+
 export async function blobToObjectUrl(blob: Blob): Promise<string> {
   return URL.createObjectURL(blob);
 }

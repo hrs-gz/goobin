@@ -38,9 +38,9 @@ export async function fetchEarnedTimestamps(
 export async function persistEarnedToCloud(
   userId: string,
   id: AchievementId
-): Promise<void> {
+): Promise<boolean> {
   const supabase = createClient();
-  await supabase.from("user_achievements").upsert(
+  const { error } = await supabase.from("user_achievements").upsert(
     {
       user_id: userId,
       achievement_id: id,
@@ -48,27 +48,30 @@ export async function persistEarnedToCloud(
     },
     { onConflict: "user_id,achievement_id" }
   );
+  return !error;
 }
 
 export async function fetchCloudFreeSpaceUnlocked(
   userId: string
 ): Promise<boolean> {
   const supabase = createClient();
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("user_profiles")
     .select("free_space_unlocked")
     .eq("user_id", userId)
     .maybeSingle();
 
+  if (error) return false;
   return Boolean(data?.free_space_unlocked);
 }
 
 export async function persistFreeSpaceUnlockedCloud(
   userId: string
-): Promise<void> {
+): Promise<boolean> {
   const supabase = createClient();
-  await supabase.from("user_profiles").upsert({
+  const { error } = await supabase.from("user_profiles").upsert({
     user_id: userId,
     free_space_unlocked: true,
   });
+  return !error;
 }

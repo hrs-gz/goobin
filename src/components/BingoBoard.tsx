@@ -3,21 +3,25 @@
 import type { Board } from "@/lib/types";
 import { BingoTile } from "./BingoTile";
 import { FreeSpaceTile } from "./FreeSpaceTile";
-
-import { isFreeSpaceUnlocked, shouldGlitch } from "@/lib/freeSpace";
+import { shouldShowCenterUnlockVisuals } from "@/lib/freeSpace";
 
 interface BingoBoardProps {
   board: Board;
   onTileTap: (tile: Board["tiles"][0]) => void;
-  isFreeSpaceGlitch?: boolean;
+  globalGoobUnlocked?: boolean;
 }
 
 export function BingoBoard({
   board,
   onTileTap,
-  isFreeSpaceGlitch = shouldGlitch(board.freeSpace.tapCount),
+  globalGoobUnlocked = false,
 }: BingoBoardProps) {
-  const centerPlayUnlocked = isFreeSpaceUnlocked(board.freeSpace.tapCount);
+  const tapCount = board.freeSpace.tapCount;
+  const centerVisualsUnlocked = shouldShowCenterUnlockVisuals(
+    board,
+    globalGoobUnlocked,
+    tapCount
+  );
   return (
     <div
       className="grid grid-cols-5 gap-1 w-full"
@@ -30,8 +34,8 @@ export function BingoBoard({
             key={tile.id}
             tile={tile}
             onTap={onTileTap}
-            glitch={isFreeSpaceGlitch}
-            unlocked={centerPlayUnlocked}
+            glitch={centerVisualsUnlocked}
+            unlocked={centerVisualsUnlocked}
           />
         ) : (
           <BingoTile key={tile.id} tile={tile} onTap={onTileTap} />

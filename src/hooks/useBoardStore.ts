@@ -19,6 +19,7 @@ import {
 } from "@/lib/persistence/boardCodec";
 import {
   blobToObjectUrl,
+  clearBoardLocalProgress,
   createPhotoBlobId,
   deletePhotoBlob,
   getFreeSpaceTapCount,
@@ -30,17 +31,17 @@ import {
   updateTileSession,
 } from "@/lib/persistence/session";
 import {
+  buildFreeSpaceFields,
   getFreeSpaceMessage,
-  getFreeSpaceState,
-  isFreeSpaceUnlocked,
-  shouldGlitch,
+  canOpenCenterPhoto,
+  shouldShowCenterUnlockVisuals,
   shouldShowGoobChallenge,
 } from "@/lib/freeSpace";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuth } from "@/providers/AuthProvider";
 import { processImageFile } from "@/lib/photo";
 import type { Board, MarkupData, PlaySession, Tile } from "@/lib/types";
 
-export interface UseBoardStoreOptions {
+interface UseBoardStoreOptions {
   encodedBoard?: string | null;
   cloudBoardId?: string | null;
   readOnly?: boolean;
@@ -71,11 +72,7 @@ function mergeSessionIntoBoard(
   return {
     ...board,
     tiles,
-    freeSpace: {
-      tapCount,
-      state: getFreeSpaceState(tapCount),
-      secretClue: tapCount >= 21 ? getFreeSpaceMessage(tapCount) : undefined,
-    },
+    freeSpace: buildFreeSpaceFields(tapCount),
   };
 }
 
@@ -107,7 +104,10 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     globalGoobUnlocked = false,
     onRequestFreeSpaceChallenge,
   } = options;
-  const [board, setBoard] = useState<Board>(defaultBoard);
+  const [board, setBoard] = useState<Board>(() => ({
+    ...defaultBoard,
+    freeSpace: { tapCount: 0, state: "standard" },
+  }));
   const [loading, setLoading] = useState(true);
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
   const [freeSpaceMessage, setFreeSpaceMessage] = useState<string | null>(
@@ -131,71 +131,76 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     [cloudBoardId, isCloudOwner]
   );
 
-  const hydrate = useCallback(async () => {
-    setLoading(true);
-    markedCompleteRef.current = false;
-    let baseBoard = defaultBoard;
-    let owner = false;
+  const hydrate = useCallback(
+    async (isCancelled: () => boolean) => {
+      if (isCancelled()) return;
+      setLoading(true);
+      markedCompleteRef.current = false;
+      let baseBoard = defaultBoard;
+      let owner = false;
 
-    if (cloudBoardId) {
-      const record = await getBoard(cloudBoardId);
-      if (record) {
-        baseBoard = createBoardFromDefinition(
-          record.definition,
-          getLocalBoardId(cloudBoardId)
-        );
-        owner = user?.id === record.user_id;
-        setIsCloudOwner(owner);
-        if (record.progress?.tiles) {
-          await mergeCloudIntoLocal(boardId, record.progress);
+      if (cloudBoardId) {
+        const record = await getBoard(cloudBoardId);
+        if (isCancelled()) return;
+        if (record) {
+          baseBoard = createBoardFromDefinition(
+            record.definition,
+            getLocalBoardId(cloudBoardId)
+          );
+          owner = user?.id === record.user_id;
+          if (!isCancelled()) setIsCloudOwner(owner);
+          if (record.progress?.tiles) {
+            await mergeCloudIntoLocal(boardId, record.progress);
+            if (isCancelled()) return;
+          }
+        }
+      } else if (encodedBoard) {
+        const def = decodeBoardDefinition(encodedBoard);
+        if (isCancelled()) return;
+        if (def) {
+          baseBoard = createBoardFromDefinition(def, boardId);
+        }
+      } else {
+        baseBoard = { ...defaultBoard, id: boardId };
+      }
+
+      const session = await loadSession(boardId);
+      if (isCancelled()) return;
+
+      const photoUrls: Record<string, string> = {};
+
+      if (session) {
+        for (const [tileId, data] of Object.entries(session.tiles)) {
+          if (data.photoBlobId) {
+            const blob = await loadPhotoBlob(data.photoBlobId);
+            if (isCancelled()) return;
+            if (blob) photoUrls[tileId] = await blobToObjectUrl(blob);
+            if (isCancelled()) return;
+          }
         }
       }
-    } else if (encodedBoard) {
-      const def = decodeBoardDefinition(encodedBoard);
-      if (def) {
-        baseBoard = createBoardFromDefinition(def, boardId);
+
+      const merged = mergeSessionIntoBoard(baseBoard, session, photoUrls);
+
+      merged.freeSpace = buildFreeSpaceFields(getFreeSpaceTapCount(boardId));
+
+      if (isCancelled()) return;
+      setBoard(merged);
+      setLoading(false);
+
+      if (owner && session) {
+        await syncToCloud(session);
       }
-    } else {
-      baseBoard = { ...defaultBoard, id: boardId };
-    }
-
-    const session = await loadSession(boardId);
-    const photoUrls: Record<string, string> = {};
-
-    if (session) {
-      for (const [tileId, data] of Object.entries(session.tiles)) {
-        if (data.photoBlobId) {
-          const blob = await loadPhotoBlob(data.photoBlobId);
-          if (blob) photoUrls[tileId] = await blobToObjectUrl(blob);
-        }
-      }
-    }
-
-    const tapCount = getFreeSpaceTapCount(boardId);
-    const merged = mergeSessionIntoBoard(baseBoard, session, photoUrls);
-
-    if (tapCount > 0) {
-      merged.freeSpace = {
-        tapCount,
-        state: getFreeSpaceState(tapCount),
-        secretClue: tapCount >= 21 ? getFreeSpaceMessage(tapCount) : undefined,
-      };
-    }
-
-    setBoard(merged);
-    setLoading(false);
-
-    if (owner && session) {
-      await syncToCloud(session);
-    }
-  }, [encodedBoard, boardId, cloudBoardId, syncToCloud, user?.id]);
+    },
+    [encodedBoard, boardId, cloudBoardId, syncToCloud, user?.id]
+  );
 
   useEffect(() => {
     let cancelled = false;
-    void (async () => {
-      await hydrate();
-      if (cancelled) return;
-    })();
+    const isCancelled = () => cancelled;
+    // Board hydration loads IndexedDB + optional cloud record on mount/param change.
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async load with cancellation
+    void hydrate(isCancelled);
     return () => {
       cancelled = true;
     };
@@ -219,7 +224,7 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
 
     markedCompleteRef.current = true;
     void markCompleted(cloudBoardId);
-  }, [board.tiles, cloudBoardId, isCloudOwner, readOnly]);
+  }, [board.tiles, board.hasSecretCenter, cloudBoardId, isCloudOwner, readOnly]);
 
   const selectedTile = useMemo(
     () => board.tiles.find((t) => t.id === selectedTileId) ?? null,
@@ -289,13 +294,13 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
 
     setBoard((prev) => ({
       ...prev,
-      freeSpace: {
-        tapCount: nextCount,
-        state: getFreeSpaceState(nextCount),
-        secretClue: nextCount >= 21 ? message : undefined,
-      },
+      freeSpace: buildFreeSpaceFields(nextCount),
     }));
-  }, [board.freeSpace.tapCount, boardId, readOnly]);
+
+    if (shouldShowGoobChallenge(board, globalGoobUnlocked, nextCount)) {
+      onRequestFreeSpaceChallenge?.();
+    }
+  }, [board, boardId, globalGoobUnlocked, onRequestFreeSpaceChallenge, readOnly]);
 
   const openTile = useCallback(
     (tile: Tile) => {
@@ -307,13 +312,14 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
         return;
       }
       if (tile.isFreeSpace) {
-        if (isFreeSpaceUnlocked(board.freeSpace.tapCount)) {
-          setSelectedTileId(tile.id);
-          setCardFlipped(false);
+        const tapCount = board.freeSpace.tapCount;
+        if (shouldShowGoobChallenge(board, globalGoobUnlocked, tapCount)) {
+          onRequestFreeSpaceChallenge?.();
           return;
         }
-        if (shouldShowGoobChallenge(board, globalGoobUnlocked)) {
-          onRequestFreeSpaceChallenge?.();
+        if (canOpenCenterPhoto(tapCount)) {
+          setSelectedTileId(tile.id);
+          setCardFlipped(false);
           return;
         }
         handleFreeSpaceTap();
@@ -324,7 +330,6 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     },
     [
       board,
-      board.freeSpace.tapCount,
       globalGoobUnlocked,
       handleFreeSpaceTap,
       onRequestFreeSpaceChallenge,
@@ -337,7 +342,34 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     setCardFlipped(false);
   }, []);
 
-  const isFreeSpaceGlitch = shouldGlitch(board.freeSpace.tapCount);
+  const resetBoard = useCallback(async () => {
+    if (readOnly) return;
+
+    await clearBoardLocalProgress(boardId);
+
+    if (cloudBoardId && isCloudOwner) {
+      await updateProgress(cloudBoardId, { boardId, tiles: {} });
+    }
+
+    closeCard();
+    setFreeSpaceMessage(null);
+    markedCompleteRef.current = false;
+
+    await hydrate(() => false);
+  }, [
+    boardId,
+    cloudBoardId,
+    closeCard,
+    hydrate,
+    isCloudOwner,
+    readOnly,
+  ]);
+
+  const isFreeSpaceGlitch = shouldShowCenterUnlockVisuals(
+    board,
+    globalGoobUnlocked,
+    board.freeSpace.tapCount
+  );
 
   return {
     board,
@@ -348,6 +380,7 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     selectedTileId,
     openTile,
     closeCard,
+    resetBoard,
     completeTileWithPhoto,
     saveMarkup,
     freeSpaceMessage,

@@ -18,6 +18,7 @@ interface AppShellProps {
   onThemeChange?: (theme: ThemeId) => void;
   onShare?: () => void;
   showBuildLink?: boolean;
+  onResetBoard?: () => void | Promise<void>;
 }
 
 export function AppShell({
@@ -29,6 +30,7 @@ export function AppShell({
   onThemeChange: controlledOnThemeChange,
   onShare,
   showBuildLink = true,
+  onResetBoard,
 }: AppShellProps) {
   const { mode, toggle } = useColorMode();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -61,6 +63,7 @@ export function AppShell({
         themeId={themeId}
         onThemeChange={handleThemeChange}
         showBuildLink={showBuildLink}
+        onResetBoard={onResetBoard}
       />
       {title && (
         <div className="px-4 pb-2 text-center">

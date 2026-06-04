@@ -46,7 +46,7 @@ export function createBoardFromDefinition(
   };
 }
 
-export function buildTiles(def: BoardDefinition): Board["tiles"] {
+function buildTiles(def: BoardDefinition): Board["tiles"] {
   const definitions = def.tiles;
   const tiles: Board["tiles"] = [];
   let defIndex = 0;

@@ -43,17 +43,22 @@ function rowToRecord(row: Record<string, unknown>): BoardRecord {
   };
 }
 
+export type CreateBoardResult =
+  | { ok: true; record: BoardRecord }
+  | { ok: false; error: string };
+
 export async function createBoard(
   input: CreateBoardInput
-): Promise<BoardRecord | null> {
+): Promise<CreateBoardResult> {
   const supabase = createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) {
+    return { ok: false, error: "You must be signed in to save a board." };
+  }
 
   const { definition, latitude, longitude, location_label, is_public } = input;
-  const localId = "pending";
 
   const { data, error } = await supabase
     .from("boards")
@@ -63,7 +68,7 @@ export async function createBoard(
       theme_id: definition.themeId,
       definition,
       status: "in_progress",
-      progress: { boardId: localId, tiles: {} },
+      progress: { boardId: "pending", tiles: {} },
       latitude: latitude ?? null,
       longitude: longitude ?? null,
       location_label: location_label ?? null,
@@ -72,18 +77,27 @@ export async function createBoard(
     .select()
     .single();
 
-  if (error || !data) return null;
+  if (error || !data) {
+    return {
+      ok: false,
+      error: error?.message ?? "Could not create board.",
+    };
+  }
 
   const progress: PlaySession = {
     boardId: localBoardKey(data.id),
     tiles: {},
   };
-  await supabase
+  const { error: progressError } = await supabase
     .from("boards")
     .update({ progress })
     .eq("id", data.id);
 
-  return rowToRecord({ ...data, progress });
+  if (progressError) {
+    return { ok: false, error: progressError.message };
+  }
+
+  return { ok: true, record: rowToRecord({ ...data, progress }) };
 }
 
 export async function listUserBoards(): Promise<BoardRecord[]> {

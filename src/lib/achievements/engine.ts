@@ -7,32 +7,6 @@ import {
   type AchievementId,
 } from "./catalog";
 import { NEARBY_MIN_BOARDS, NEARBY_RADIUS_KM } from "./config";
-import { isFreeSpaceUnlockedLocal } from "./local";
-
-export {
-  LOCAL_EARNED_KEY,
-  FREE_SPACE_UNLOCK_KEY,
-  getLocalEarnedIds,
-  setLocalEarnedIds,
-  isFreeSpaceUnlockedLocal,
-  setFreeSpaceUnlockedLocal,
-} from "./local";
-
-export {
-  fetchCloudEarnedIds,
-  fetchEarnedTimestamps,
-  persistEarnedToCloud,
-  fetchCloudFreeSpaceUnlocked,
-  persistFreeSpaceUnlockedCloud,
-} from "./cloud";
-
-export {
-  mergeEarnedSets,
-  hydrateEarnedIds,
-  syncLocalEarnedToCloud,
-  hydrateFreeSpaceUnlocked,
-  syncFreeSpaceToCloud,
-} from "./sync";
 
 function hasNearbyBoardCluster(boards: BoardRecord[]): boolean {
   const located = boards.filter(
@@ -83,16 +57,4 @@ export function evaluateNewAchievements(
     if (def.check(ctx)) newly.push(def);
   }
   return newly;
-}
-
-export async function isFreeSpaceUnlockedGlobal(
-  userId: string | null
-): Promise<boolean> {
-  const { hydrateFreeSpaceUnlocked } = await import("./sync");
-  return hydrateFreeSpaceUnlocked(userId);
-}
-
-/** Sync version for render paths after hydration */
-export function isFreeSpaceUnlockedGlobalSync(): boolean {
-  return isFreeSpaceUnlockedLocal();
 }
