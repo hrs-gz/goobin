@@ -80,6 +80,13 @@ export function AppMenu({
                 </Link>
               )}
               <Link
+                href="/achievements"
+                onClick={onClose}
+                className="min-h-11 px-4 flex items-center rounded-full hover:bg-black/5 font-medium"
+              >
+                Achievements
+              </Link>
+              <Link
                 href="/history"
                 onClick={onClose}
                 className="min-h-11 px-4 flex items-center rounded-full hover:bg-black/5 font-medium"
@@ -117,7 +124,7 @@ export function AppMenu({
               )}
             </nav>
 
-            <div className="px-4 py-4 space-y-6 flex-1 overflow-y-auto">
+            <div className="px-4 pt-2 pb-4 space-y-6 flex-1 overflow-y-auto">
               <div>
                 <p className="text-sm font-medium mb-3">Appearance</p>
                 <button
@@ -136,7 +143,7 @@ export function AppMenu({
                 </button>
               </div>
 
-              <div>
+              <div className="overflow-visible">
                 <p className="text-sm font-medium mb-3">Accent theme</p>
                 <ThemePillPicker value={themeId} onChange={onThemeChange} />
               </div>

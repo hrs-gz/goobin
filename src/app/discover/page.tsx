@@ -1,14 +1,19 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { AppShell } from "@/components/AppShell";
 import { BoardLibraryCard } from "@/components/BoardLibraryCard";
 import { useAuth } from "@/hooks/useAuth";
 import { discoverNearby } from "@/lib/cloud/boards";
 import type { DiscoverBoard } from "@/lib/cloud/boards";
 
-export default function DiscoverPage() {
+function DiscoverPageContent() {
+  const searchParams = useSearchParams();
+  const autoSearch = searchParams.get("auto") === "1";
+  const autoRan = useRef(false);
+
   const { user, loading: authLoading } = useAuth();
   const [boards, setBoards] = useState<DiscoverBoard[]>([]);
   const [loading, setLoading] = useState(false);
@@ -43,6 +48,12 @@ export default function DiscoverPage() {
       { enableHighAccuracy: true, timeout: 15000 }
     );
   }, []);
+
+  useEffect(() => {
+    if (!autoSearch || autoRan.current || authLoading || !user) return;
+    autoRan.current = true;
+    void searchNearby();
+  }, [autoSearch, authLoading, user, searchNearby]);
 
   if (authLoading) {
     return (
@@ -103,5 +114,19 @@ export default function DiscoverPage() {
         </div>
       </div>
     </AppShell>
+  );
+}
+
+export default function DiscoverPage() {
+  return (
+    <Suspense
+      fallback={
+        <AppShell>
+          <p className="text-[var(--text-muted)]">Loading...</p>
+        </AppShell>
+      }
+    >
+      <DiscoverPageContent />
+    </Suspense>
   );
 }

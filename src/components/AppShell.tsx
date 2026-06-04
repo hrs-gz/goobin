@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAccentTheme } from "@/hooks/useAccentTheme";
 import { useColorMode } from "@/hooks/useTheme";
 import type { ThemeId } from "@/lib/types";
 import { Header } from "./Header";
@@ -9,6 +10,10 @@ import { AppMenu } from "./AppMenu";
 interface AppShellProps {
   children: React.ReactNode;
   title?: string;
+  /** Per-board or page scope for accent override (e.g. board id). */
+  accentScope?: string;
+  defaultThemeId?: ThemeId;
+  /** Controlled mode (e.g. board builder definition theme). */
   themeId?: ThemeId;
   onThemeChange?: (theme: ThemeId) => void;
   onShare?: () => void;
@@ -18,16 +23,27 @@ interface AppShellProps {
 export function AppShell({
   children,
   title,
-  themeId = "neon-pink",
-  onThemeChange,
+  accentScope,
+  defaultThemeId = "neon-pink",
+  themeId: controlledThemeId,
+  onThemeChange: controlledOnThemeChange,
   onShare,
   showBuildLink = true,
 }: AppShellProps) {
   const { mode, toggle } = useColorMode();
   const [menuOpen, setMenuOpen] = useState(false);
+  const internalAccent = useAccentTheme(accentScope, defaultThemeId);
+
+  const isControlled =
+    controlledThemeId !== undefined && controlledOnThemeChange !== undefined;
+  const themeId = isControlled ? controlledThemeId : internalAccent.themeId;
 
   const handleThemeChange = (id: ThemeId) => {
-    onThemeChange?.(id);
+    if (isControlled) {
+      controlledOnThemeChange(id);
+    } else {
+      internalAccent.setThemeId(id);
+    }
   };
 
   return (

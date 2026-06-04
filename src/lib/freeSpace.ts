@@ -1,7 +1,11 @@
-import type { FreeSpaceState } from "./types";
+import { isFreeSpaceUnlockedLocal } from "@/lib/achievements/engine";
+import { DEFAULT_BOARD_ID } from "@/lib/defaultBoard";
+import type { Board, FreeSpaceState } from "./types";
 
-export const SECRET_CLUE =
-  "Coordinates whisper: 37.7749° N — look where the grid cracks meet the old pier.";
+export const GOOB_CHALLENGE_COPY =
+  "Post a selfie to social media with the caption #goob. This is a one-time unlock for your account.";
+
+export const GOOB_SHARE_TEXT = "Playing goobin! #goob";
 
 const CASUAL = [
   "Aren't you glad it's free?",
@@ -29,8 +33,21 @@ const IMPATIENT = [
   "Okay, fine, keep going.",
 ];
 
+export const SECRET_CLUE =
+  "Coordinates whisper: 37.7749° N — look where the grid cracks meet the old pier.";
+
+/** One-time #goob ritual: achievement + builder secret center */
+export function hasGlobalGoobUnlocked(): boolean {
+  return isFreeSpaceUnlockedLocal();
+}
+
+/** Per-board: 21 taps unlocks center photo on this board */
 export function isFreeSpaceUnlocked(tapCount: number): boolean {
   return tapCount >= 21;
+}
+
+export function isFreeSpacePlayUnlocked(tapCount: number): boolean {
+  return isFreeSpaceUnlocked(tapCount);
 }
 
 export function getFreeSpaceState(tapCount: number): FreeSpaceState {
@@ -49,4 +66,14 @@ export function getFreeSpaceMessage(tapCount: number): string {
 
 export function shouldGlitch(tapCount: number): boolean {
   return tapCount >= 21;
+}
+
+/** Show #goob modal on center tap (demo or boards without creator secret center) */
+export function shouldShowGoobChallenge(
+  board: Board,
+  globalGoobUnlocked: boolean
+): boolean {
+  if (globalGoobUnlocked) return false;
+  if (isFreeSpaceUnlocked(board.freeSpace.tapCount)) return false;
+  return board.id === DEFAULT_BOARD_ID || !board.hasSecretCenter;
 }

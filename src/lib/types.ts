@@ -62,6 +62,14 @@ export interface CompletionStatus {
   label: string;
 }
 
+export interface BoardDefinition {
+  title: string;
+  themeId: ThemeId;
+  tiles: { prompt: string; icon: string }[];
+  /** Custom center tile (flair only; excluded from bingo lines when set). */
+  secretCenter?: { prompt: string; icon: string };
+}
+
 export interface Board {
   id: string;
   title: string;
@@ -69,14 +77,10 @@ export interface Board {
   themeId: ThemeId;
   tiles: Tile[];
   freeSpace: FreeSpace;
+  /** When true, center tile is flair-only for line/blackout math */
+  hasSecretCenter?: boolean;
   createdAt: string;
   createdBy?: string;
-}
-
-export interface BoardDefinition {
-  title: string;
-  themeId: ThemeId;
-  tiles: { prompt: string; icon: string }[];
 }
 
 export interface TileSessionData {

@@ -11,7 +11,7 @@ interface ThemePillPickerProps {
 export function ThemePillPicker({ value, onChange }: ThemePillPickerProps) {
   return (
     <div
-      className="flex gap-2 overflow-x-auto pb-1 snap-x snap-mandatory scrollbar-none"
+      className="flex gap-2 overflow-x-auto overflow-y-visible px-1 py-2 snap-x snap-mandatory scrollbar-none"
       role="radiogroup"
       aria-label="Accent theme"
     >
@@ -27,7 +27,7 @@ export function ThemePillPicker({ value, onChange }: ThemePillPickerProps) {
             onClick={() => onChange(id)}
             className={`shrink-0 snap-start px-4 py-2 rounded-full text-sm font-medium border-2 transition-all ${
               selected
-                ? "ring-2 ring-[var(--text-primary)] ring-offset-2 ring-offset-[var(--bg-page)] border-transparent"
+                ? "border-white shadow-[0_0_0_2px_var(--text-primary)]"
                 : "border-transparent opacity-80 hover:opacity-100"
             }`}
             style={{

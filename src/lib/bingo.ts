@@ -22,9 +22,23 @@ export function isTileComplete(tile: Tile): boolean {
   return Boolean(tile.photoUrl || tile.completedAt);
 }
 
-export function countCompletedLines(tiles: Tile[]): number {
+const CENTER_INDEX = 12;
+
+function countsForLine(
+  tiles: Tile[],
+  idx: number,
+  hasSecretCenter: boolean
+): boolean {
+  if (hasSecretCenter && idx === CENTER_INDEX) return true;
+  return isTileComplete(tiles[idx]);
+}
+
+export function countCompletedLines(
+  tiles: Tile[],
+  hasSecretCenter = false
+): number {
   return LINES_5.filter((line) =>
-    line.every((idx) => isTileComplete(tiles[idx]))
+    line.every((idx) => countsForLine(tiles, idx, hasSecretCenter))
   ).length;
 }
 
@@ -32,8 +46,10 @@ export function countCompletedTiles(tiles: Tile[]): number {
   return tiles.filter(isTileComplete).length;
 }
 
-export function isBlackout(tiles: Tile[]): boolean {
-  return tiles.every(isTileComplete);
+export function isBlackout(tiles: Tile[], hasSecretCenter = false): boolean {
+  return tiles.every((t, i) =>
+    hasSecretCenter && i === CENTER_INDEX ? true : isTileComplete(t)
+  );
 }
 
 function getLabel(lines: number, blackout: boolean): string {
@@ -51,10 +67,13 @@ function getBorderTier(lines: number, blackout: boolean): BorderTier {
   return "standard";
 }
 
-export function getCompletionStatus(tiles: Tile[]): CompletionStatus {
-  const completedLines = countCompletedLines(tiles);
+export function getCompletionStatus(
+  tiles: Tile[],
+  hasSecretCenter = false
+): CompletionStatus {
+  const completedLines = countCompletedLines(tiles, hasSecretCenter);
   const completedTiles = countCompletedTiles(tiles);
-  const blackout = isBlackout(tiles);
+  const blackout = isBlackout(tiles, hasSecretCenter);
 
   return {
     completedTiles,

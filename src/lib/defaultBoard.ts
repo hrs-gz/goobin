@@ -33,32 +33,33 @@ export function createBoardFromDefinition(
   def: BoardDefinition,
   id: string = DEFAULT_BOARD_ID
 ): Board {
-  const tiles = buildTiles(def.tiles);
+  const tiles = buildTiles(def);
   return {
     id,
     title: def.title,
     size: 5,
     themeId: def.themeId,
     tiles,
+    hasSecretCenter: Boolean(def.secretCenter),
     freeSpace: { tapCount: 0, state: "standard" },
     createdAt: new Date().toISOString(),
   };
 }
 
-export function buildTiles(
-  definitions: { prompt: string; icon: string }[]
-): Board["tiles"] {
+export function buildTiles(def: BoardDefinition): Board["tiles"] {
+  const definitions = def.tiles;
   const tiles: Board["tiles"] = [];
   let defIndex = 0;
 
   for (let i = 0; i < 25; i++) {
     const isFreeSpace = i === 12;
     if (isFreeSpace) {
+      const secret = def.secretCenter;
       tiles.push({
         id: `tile-${i}`,
         index: i,
-        prompt: "free space",
-        icon: "🎯",
+        prompt: secret?.prompt ?? "free space",
+        icon: secret?.icon ?? "🎯",
         isFreeSpace: true,
         completedAt: undefined,
       });

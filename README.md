@@ -40,12 +40,15 @@ Agent skills for Supabase (RLS, migrations, etc.) live in [`.agents/skills/`](.a
 
 1. Create a project at [supabase.com](https://supabase.com).
 2. Copy **Project URL** and **publishable key** (`sb_publishable_...`) into `.env.local` (see `.env.local.example`). Do not use the legacy anon JWT in new setups.
-3. Apply the schema:
+3. Apply the schema (both migrations):
 
    ```bash
    npx supabase link --project-ref YOUR_REF   # optional, if using CLI
-   npx supabase db push                       # or paste supabase/migrations/20250603120000_boards.sql in SQL Editor
+   npx supabase db push                       # or paste SQL from supabase/migrations/ in order:
    ```
+
+   - `supabase/migrations/20250603120000_boards.sql` — boards table
+   - `supabase/migrations/20250604120000_user_achievements.sql` — achievements + profiles
 
 4. In **Authentication → URL configuration**, add redirect URL:  
    `http://localhost:3000/auth/callback` (and your production URL).
@@ -59,3 +62,10 @@ Agent skills for Supabase (RLS, migrations, etc.) live in [`.agents/skills/`](.a
 - **/play/cloud/[id]** — play a saved board; syncs progress when you own it; completed boards open read-only
 
 URL-based **/play?b=** and the demo on **/** still work without an account.
+
+### Achievements
+
+- **/achievements** — milestone gallery; works signed out (progress stored in localStorage) with a sign-in CTA to back up and sync across devices
+- **Persistence:** earned IDs in `localStorage`; when signed in, rows in `user_achievements` and `user_profiles` (free-space unlock). Local-only awards upload on login.
+- **Customize milestones:** `src/lib/achievements/catalog.ts` — titles, descriptions, `check()` logic, achievement ids
+- **Customize geo / count rules:** `src/lib/achievements/config.ts` — `NEARBY_RADIUS_KM`, `NEARBY_MIN_BOARDS`, board-count thresholds

@@ -12,12 +12,14 @@ interface FreeSpaceTileProps {
   tile: Tile;
   onTap: (tile: Tile) => void;
   glitch?: boolean;
+  unlocked?: boolean;
 }
 
 export function FreeSpaceTile({
   tile,
   onTap,
   glitch = false,
+  unlocked = false,
 }: FreeSpaceTileProps) {
   const complete = isTileComplete(tile);
   const hasMarkup = tile.markupData?.hasMarkup;
@@ -34,7 +36,10 @@ export function FreeSpaceTile({
         size="md"
         className={cn(
           "relative w-full h-full flex flex-col items-center justify-center gap-1 p-1",
-          "bg-[var(--bg-tile)] border-2 border-dashed border-[var(--accent)]",
+          "bg-[var(--bg-tile)]",
+          unlocked
+            ? "border-2 border-dashed border-[var(--accent)]"
+            : "border border-[var(--border-soft)]",
           glitch && "glitch-active"
         )}
       >

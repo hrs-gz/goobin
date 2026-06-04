@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
+import { AchievementToastHost } from "@/components/AchievementToastHost";
+import { AppProviders } from "@/providers/AppProviders";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -31,7 +33,12 @@ export default function RootLayout({
       className={`${fredoka.variable} ${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
-      <body className="min-h-dvh flex flex-col">{children}</body>
+      <body className="min-h-dvh flex flex-col">
+        <AppProviders>
+          {children}
+          <AchievementToastHost />
+        </AppProviders>
+      </body>
     </html>
   );
 }

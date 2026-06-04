@@ -109,6 +109,32 @@ export async function getBoard(id: string): Promise<BoardRecord | null> {
   return rowToRecord(data);
 }
 
+export async function updateBoardTheme(
+  id: string,
+  themeId: BoardRecord["theme_id"]
+): Promise<boolean> {
+  const supabase = createClient();
+  const { data: row } = await supabase
+    .from("boards")
+    .select("definition")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!row?.definition || typeof row.definition !== "object") return false;
+
+  const definition = {
+    ...(row.definition as BoardRecord["definition"]),
+    themeId,
+  };
+
+  const { error } = await supabase
+    .from("boards")
+    .update({ theme_id: themeId, definition })
+    .eq("id", id);
+
+  return !error;
+}
+
 export async function updateProgress(
   id: string,
   progress: PlaySession

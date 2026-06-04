@@ -1,13 +1,19 @@
 "use client";
 
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { AppShell } from "./AppShell";
 import { BoardTray } from "./BoardTray";
 import { BingoBoard } from "./BingoBoard";
 import { TileSpinOutCard } from "./TileSpinOutCard";
+import { FreeSpaceChallengeModal } from "./FreeSpaceChallengeModal";
 import { FreeSpaceToast } from "./FreeSpaceToast";
+import { PlayBoardDock } from "./PlayBoardDock";
+import { useAccentTheme } from "@/hooks/useAccentTheme";
+import { useAchievements } from "@/hooks/useAchievements";
 import { useBoardStore } from "@/hooks/useBoardStore";
+import { useFreeSpaceUnlock } from "@/hooks/useFreeSpaceUnlock";
+import { updateBoardTheme } from "@/lib/cloud/boards";
 import type { ThemeId } from "@/lib/types";
 import {
   downloadBlob,
@@ -19,19 +25,23 @@ interface PlayViewProps {
   encodedBoard?: string | null;
   cloudBoardId?: string | null;
   readOnly?: boolean;
-}
-
-function themeStorageKey(boardId: string) {
-  return `goobin-theme-${boardId}`;
+  showBoardDock?: boolean;
 }
 
 export function PlayView({
   encodedBoard,
   cloudBoardId,
   readOnly = false,
+  showBoardDock = false,
 }: PlayViewProps) {
   const exportRef = useRef<HTMLDivElement>(null);
   const [exporting, setExporting] = useState(false);
+  const [challengeOpen, setChallengeOpen] = useState(false);
+  const blackoutCheckedRef = useRef(false);
+
+  const { unlocked: globalGoobUnlocked, unlock: unlockGlobalGoob } =
+    useFreeSpaceUnlock();
+  const { checkAndAward, awardById } = useAchievements();
 
   const {
     board,
@@ -49,23 +59,25 @@ export function PlayView({
     cardFlipped,
     setCardFlipped,
     boardId,
-  } = useBoardStore({ encodedBoard, cloudBoardId, readOnly });
+    isCloudOwner,
+  } = useBoardStore({
+    encodedBoard,
+    cloudBoardId,
+    readOnly,
+    globalGoobUnlocked,
+    onRequestFreeSpaceChallenge: () => setChallengeOpen(true),
+  });
 
-  const [themeRevision, setThemeRevision] = useState(0);
-
-  const themeId = useMemo(() => {
-    if (typeof window === "undefined") return board.themeId;
-    void themeRevision;
-    const stored = localStorage.getItem(themeStorageKey(boardId)) as ThemeId | null;
-    return stored ?? board.themeId;
-  }, [boardId, board.themeId, themeRevision]);
+  const { themeId, setThemeId } = useAccentTheme(boardId, board.themeId);
 
   const handleThemeChange = useCallback(
     (id: ThemeId) => {
-      localStorage.setItem(themeStorageKey(boardId), id);
-      setThemeRevision((n) => n + 1);
+      setThemeId(id);
+      if (cloudBoardId && isCloudOwner) {
+        void updateBoardTheme(cloudBoardId, id);
+      }
     },
-    [boardId]
+    [cloudBoardId, isCloudOwner, setThemeId]
   );
 
   const handleShare = useCallback(async () => {
@@ -80,9 +92,30 @@ export function PlayView({
     }
   }, [board.title]);
 
+  const handleChallengeConfirm = useCallback(async () => {
+    await unlockGlobalGoob();
+    setChallengeOpen(false);
+    await awardById("free_space_goob");
+    await checkAndAward({ freeSpaceUnlocked: true });
+  }, [awardById, checkAndAward, unlockGlobalGoob]);
+
+  useEffect(() => {
+    if (!completion.isBlackout || blackoutCheckedRef.current) return;
+    blackoutCheckedRef.current = true;
+    void checkAndAward({ freeSpaceUnlocked: globalGoobUnlocked });
+  }, [completion.isBlackout, checkAndAward, globalGoobUnlocked]);
+
+  useEffect(() => {
+    blackoutCheckedRef.current = false;
+  }, [boardId]);
+
   if (loading) {
     return (
-      <AppShell themeId={themeId} onThemeChange={handleThemeChange}>
+      <AppShell
+        themeId={themeId}
+        onThemeChange={handleThemeChange}
+        defaultThemeId={board.themeId}
+      >
         <div className="flex-1 flex items-center justify-center">
           <p className="text-[var(--text-muted)]">Loading board...</p>
         </div>
@@ -94,11 +127,12 @@ export function PlayView({
     <AppShell
       themeId={themeId}
       onThemeChange={handleThemeChange}
+      defaultThemeId={board.themeId}
       onShare={handleShare}
       showBuildLink
     >
       <motion.div
-        className="w-full flex flex-col items-center"
+        className={`w-full flex flex-col items-center ${showBoardDock ? "pb-20" : ""}`}
         animate={{ scale: selectedTileId ? 0.95 : 1 }}
         transition={{ type: "spring", stiffness: 300, damping: 30 }}
       >
@@ -127,6 +161,14 @@ export function PlayView({
         glitch={isFreeSpaceGlitch}
         onDismiss={() => setFreeSpaceMessage(null)}
       />
+
+      <FreeSpaceChallengeModal
+        open={challengeOpen}
+        onClose={() => setChallengeOpen(false)}
+        onConfirm={handleChallengeConfirm}
+      />
+
+      {showBoardDock && !readOnly && !selectedTileId && <PlayBoardDock />}
 
       {selectedTile && selectedTileId && (
         <TileSpinOutCard

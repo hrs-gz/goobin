@@ -7,7 +7,9 @@ import { useRouter } from "next/navigation";
 import { AppShell } from "./AppShell";
 import { PromptEditor } from "./PromptEditor";
 import { IconPicker } from "./IconPicker";
+import { useAchievements } from "@/hooks/useAchievements";
 import { useAuth } from "@/hooks/useAuth";
+import { useFreeSpaceUnlock } from "@/hooks/useFreeSpaceUnlock";
 import { createBoard } from "@/lib/cloud/boards";
 import {
   buildPlayUrl,
@@ -30,10 +32,23 @@ export function BoardBuilder() {
   const [locationLabel, setLocationLabel] = useState("");
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+  const [secretCenterEnabled, setSecretCenterEnabled] = useState(false);
+  const [secretPrompt, setSecretPrompt] = useState("secret moment");
+  const [secretIcon, setSecretIcon] = useState("🤫");
+
+  const { unlocked: globalGoobUnlocked } = useFreeSpaceUnlock();
+  const { checkAndAward } = useAchievements();
 
   const definition: BoardDefinition = useMemo(
-    () => ({ title, themeId, tiles }),
-    [title, themeId, tiles]
+    () => ({
+      title,
+      themeId,
+      tiles,
+      ...(secretCenterEnabled && globalGoobUnlocked
+        ? { secretCenter: { prompt: secretPrompt, icon: secretIcon } }
+        : {}),
+    }),
+    [title, themeId, tiles, secretCenterEnabled, globalGoobUnlocked, secretPrompt, secretIcon]
   );
 
   const playPath = useMemo(() => {
@@ -102,7 +117,8 @@ export function BoardBuilder() {
       latitude,
       longitude,
       location_label: locationLabel.trim() || undefined,
-      is_public: isPublic && latitude != null && longitude != null,
+      is_public:
+        useLocation && isPublic && latitude != null && longitude != null,
     });
 
     setSaving(false);
@@ -110,6 +126,7 @@ export function BoardBuilder() {
       setSaveError("Could not save board. Check you are signed in.");
       return;
     }
+    await checkAndAward({ freeSpaceUnlocked: globalGoobUnlocked });
     router.push(`/play/cloud/${record.id}`);
   };
 
@@ -163,6 +180,41 @@ export function BoardBuilder() {
           <p className="text-sm text-red-500">{urlError}</p>
         )}
 
+        {user && globalGoobUnlocked && (
+          <div className="squircle-lg p-4 bg-[var(--bg-tray)] space-y-3 border border-[var(--border-soft)]">
+            <p className="text-sm font-medium">Secret center tile</p>
+            <p className="text-xs text-[var(--text-muted)]">
+              Flair only — does not count toward bingo lines or blackout.
+            </p>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="checkbox"
+                checked={secretCenterEnabled}
+                onChange={(e) => setSecretCenterEnabled(e.target.checked)}
+              />
+              Use custom center tile
+            </label>
+            {secretCenterEnabled && (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  placeholder="Center prompt"
+                  value={secretPrompt}
+                  onChange={(e) => setSecretPrompt(e.target.value)}
+                  className="input-rect flex-1"
+                />
+                <input
+                  type="text"
+                  placeholder="Icon"
+                  value={secretIcon}
+                  onChange={(e) => setSecretIcon(e.target.value)}
+                  className="input-rect w-16 text-center"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
         {user && (
           <div className="squircle-lg p-4 bg-[var(--bg-tray)] space-y-3 border border-[var(--border-soft)]">
             <p className="text-sm font-medium">Save to your account</p>
@@ -170,7 +222,11 @@ export function BoardBuilder() {
               <input
                 type="checkbox"
                 checked={useLocation}
-                onChange={(e) => setUseLocation(e.target.checked)}
+                onChange={(e) => {
+                  const checked = e.target.checked;
+                  setUseLocation(checked);
+                  if (!checked) setIsPublic(false);
+                }}
               />
               Attach my location (for Discover)
             </label>
@@ -186,7 +242,7 @@ export function BoardBuilder() {
             <label className="flex items-center gap-2 text-sm">
               <input
                 type="checkbox"
-                checked={isPublic}
+                checked={isPublic && useLocation}
                 disabled={!useLocation}
                 onChange={(e) => setIsPublic(e.target.checked)}
               />

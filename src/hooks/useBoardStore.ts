@@ -14,12 +14,6 @@ import {
   updateProgress,
 } from "@/lib/cloud/boards";
 import {
-  getFreeSpaceMessage,
-  getFreeSpaceState,
-  isFreeSpaceUnlocked,
-  shouldGlitch,
-} from "@/lib/freeSpace";
-import {
   decodeBoardDefinition,
   getBoardIdFromEncoded,
 } from "@/lib/persistence/boardCodec";
@@ -35,7 +29,14 @@ import {
   setFreeSpaceTapCount,
   updateTileSession,
 } from "@/lib/persistence/session";
-import { createClient } from "@/lib/supabase/client";
+import {
+  getFreeSpaceMessage,
+  getFreeSpaceState,
+  isFreeSpaceUnlocked,
+  shouldGlitch,
+  shouldShowGoobChallenge,
+} from "@/lib/freeSpace";
+import { useAuth } from "@/hooks/useAuth";
 import { processImageFile } from "@/lib/photo";
 import type { Board, MarkupData, PlaySession, Tile } from "@/lib/types";
 
@@ -43,6 +44,9 @@ export interface UseBoardStoreOptions {
   encodedBoard?: string | null;
   cloudBoardId?: string | null;
   readOnly?: boolean;
+  /** One-time global #goob completed */
+  globalGoobUnlocked?: boolean;
+  onRequestFreeSpaceChallenge?: () => void;
 }
 
 function mergeSessionIntoBoard(
@@ -95,11 +99,20 @@ async function mergeCloudIntoLocal(
 }
 
 export function useBoardStore(options: UseBoardStoreOptions = {}) {
-  const { encodedBoard, cloudBoardId, readOnly = false } = options;
+  const { user } = useAuth();
+  const {
+    encodedBoard,
+    cloudBoardId,
+    readOnly = false,
+    globalGoobUnlocked = false,
+    onRequestFreeSpaceChallenge,
+  } = options;
   const [board, setBoard] = useState<Board>(defaultBoard);
   const [loading, setLoading] = useState(true);
   const [selectedTileId, setSelectedTileId] = useState<string | null>(null);
-  const [freeSpaceMessage, setFreeSpaceMessage] = useState<string | null>(null);
+  const [freeSpaceMessage, setFreeSpaceMessage] = useState<string | null>(
+    null
+  );
   const [cardFlipped, setCardFlipped] = useState(false);
   const [isCloudOwner, setIsCloudOwner] = useState(false);
   const markedCompleteRef = useRef(false);
@@ -131,10 +144,6 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
           record.definition,
           getLocalBoardId(cloudBoardId)
         );
-        const supabase = createClient();
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
         owner = user?.id === record.user_id;
         setIsCloudOwner(owner);
         if (record.progress?.tiles) {
@@ -179,7 +188,7 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     if (owner && session) {
       await syncToCloud(session);
     }
-  }, [encodedBoard, boardId, cloudBoardId, syncToCloud]);
+  }, [encodedBoard, boardId, cloudBoardId, syncToCloud, user?.id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -193,8 +202,8 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
   }, [hydrate]);
 
   const completion = useMemo(
-    () => getCompletionStatus(board.tiles),
-    [board.tiles]
+    () => getCompletionStatus(board.tiles, board.hasSecretCenter),
+    [board.tiles, board.hasSecretCenter]
   );
 
   useEffect(() => {
@@ -206,7 +215,7 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     ) {
       return;
     }
-    if (!isBlackout(board.tiles)) return;
+    if (!isBlackout(board.tiles, board.hasSecretCenter)) return;
 
     markedCompleteRef.current = true;
     void markCompleted(cloudBoardId);
@@ -303,13 +312,24 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
           setCardFlipped(false);
           return;
         }
+        if (shouldShowGoobChallenge(board, globalGoobUnlocked)) {
+          onRequestFreeSpaceChallenge?.();
+          return;
+        }
         handleFreeSpaceTap();
         return;
       }
       setSelectedTileId(tile.id);
       setCardFlipped(false);
     },
-    [board.freeSpace.tapCount, handleFreeSpaceTap, readOnly]
+    [
+      board,
+      board.freeSpace.tapCount,
+      globalGoobUnlocked,
+      handleFreeSpaceTap,
+      onRequestFreeSpaceChallenge,
+      readOnly,
+    ]
   );
 
   const closeCard = useCallback(() => {
@@ -337,5 +357,6 @@ export function useBoardStore(options: UseBoardStoreOptions = {}) {
     setCardFlipped,
     boardId,
     readOnly,
+    isCloudOwner,
   };
 }
