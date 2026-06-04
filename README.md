@@ -36,8 +36,10 @@ Next.js, React, Tailwind CSS, Framer Motion, IndexedDB, Konva, html-to-image, lz
 
 ## Supabase (cloud accounts)
 
+Agent skills for Supabase (RLS, migrations, etc.) live in [`.agents/skills/`](.agents/skills/) — install or refresh with `npx skills add supabase/agent-skills`.
+
 1. Create a project at [supabase.com](https://supabase.com).
-2. Copy **Project URL** and **anon key** into `.env.local` (see `.env.local.example`).
+2. Copy **Project URL** and **publishable key** (`sb_publishable_...`) into `.env.local` (see `.env.local.example`). Do not use the legacy anon JWT in new setups.
 3. Apply the schema:
 
    ```bash
