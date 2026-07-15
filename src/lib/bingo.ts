@@ -1,85 +1,60 @@
-import type { BorderTier, CompletionStatus, Tile } from "./types";
+import type { GridSize } from "./types";
 
-export const LINES_5: number[][] = [
-  [0, 1, 2, 3, 4],
-  [5, 6, 7, 8, 9],
-  [10, 11, 12, 13, 14],
-  [15, 16, 17, 18, 19],
-  [20, 21, 22, 23, 24],
-  [0, 5, 10, 15, 20],
-  [1, 6, 11, 16, 21],
-  [2, 7, 12, 17, 22],
-  [3, 8, 13, 18, 23],
-  [4, 9, 14, 19, 24],
-  [0, 6, 12, 18, 24],
-  [4, 8, 12, 16, 20],
-];
+/** Index of the center (free space) tile for a given grid size. */
+export function centerIndex(size: GridSize): number {
+  return (size * size - 1) / 2;
+}
 
-export function isTileComplete(tile: Tile): boolean {
-  if (tile.isFreeSpace) {
-    return Boolean(tile.photoUrl || tile.completedAt);
+const linesCache = new Map<number, number[][]>();
+
+/**
+ * All winning lines for an `size × size` board: every row, every column,
+ * and the two main diagonals. Memoized per size.
+ */
+export function linesFor(size: number): number[][] {
+  const cached = linesCache.get(size);
+  if (cached) return cached;
+
+  const lines: number[][] = [];
+
+  // Rows
+  for (let r = 0; r < size; r++) {
+    const row: number[] = [];
+    for (let c = 0; c < size; c++) row.push(r * size + c);
+    lines.push(row);
   }
-  return Boolean(tile.photoUrl || tile.completedAt);
+
+  // Columns
+  for (let c = 0; c < size; c++) {
+    const col: number[] = [];
+    for (let r = 0; r < size; r++) col.push(r * size + c);
+    lines.push(col);
+  }
+
+  // Diagonals
+  const diag: number[] = [];
+  const anti: number[] = [];
+  for (let i = 0; i < size; i++) {
+    diag.push(i * size + i);
+    anti.push(i * size + (size - 1 - i));
+  }
+  lines.push(diag, anti);
+
+  linesCache.set(size, lines);
+  return lines;
 }
 
-const CENTER_INDEX = 12;
-
-function countsForLine(
-  tiles: Tile[],
-  idx: number,
-  hasSecretCenter: boolean
-): boolean {
-  if (hasSecretCenter && idx === CENTER_INDEX) return true;
-  return isTileComplete(tiles[idx]);
+/**
+ * Number of fully completed winning lines.
+ * `completion[i]` is true when tile `i` is complete (center/free space
+ * should be passed as `true` by the caller).
+ */
+export function countCompletedLines(completion: boolean[], size: number): number {
+  return linesFor(size).filter((line) => line.every((idx) => completion[idx]))
+    .length;
 }
 
-export function countCompletedLines(
-  tiles: Tile[],
-  hasSecretCenter = false
-): number {
-  return LINES_5.filter((line) =>
-    line.every((idx) => countsForLine(tiles, idx, hasSecretCenter))
-  ).length;
-}
-
-export function countCompletedTiles(tiles: Tile[]): number {
-  return tiles.filter(isTileComplete).length;
-}
-
-export function isBlackout(tiles: Tile[], hasSecretCenter = false): boolean {
-  return tiles.every((t, i) =>
-    hasSecretCenter && i === CENTER_INDEX ? true : isTileComplete(t)
-  );
-}
-
-function getLabel(lines: number, blackout: boolean): string {
-  if (blackout) return "Blackout";
-  if (lines >= 5) return "Mega Bingo";
-  if (lines === 4) return "Triple Bingo";
-  if (lines === 3) return "Double Bingo";
-  if (lines >= 1) return "Bingo";
-  return "No Bingo";
-}
-
-function getBorderTier(lines: number, blackout: boolean): BorderTier {
-  if (blackout) return "goldBlackout";
-  if (lines >= 2) return "dualTone";
-  return "standard";
-}
-
-export function getCompletionStatus(
-  tiles: Tile[],
-  hasSecretCenter = false
-): CompletionStatus {
-  const completedLines = countCompletedLines(tiles, hasSecretCenter);
-  const completedTiles = countCompletedTiles(tiles);
-  const blackout = isBlackout(tiles, hasSecretCenter);
-
-  return {
-    completedTiles,
-    completedLines,
-    isBlackout: blackout,
-    borderTier: getBorderTier(completedLines, blackout),
-    label: getLabel(completedLines, blackout),
-  };
+/** True when every tile is complete (blackout). */
+export function isBlackout(completion: boolean[]): boolean {
+  return completion.length > 0 && completion.every(Boolean);
 }

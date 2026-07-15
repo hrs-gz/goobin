@@ -1,4 +1,4 @@
-const DEFAULT_AUTH_REDIRECT = "/history";
+const DEFAULT_AUTH_REDIRECT = "/boards";
 
 /** Validates post-login path: relative app route only (no open redirect). */
 export function safeAuthRedirect(next: string | null | undefined): string {

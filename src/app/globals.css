@@ -1,46 +1,62 @@
 @import "tailwindcss";
 @import "../styles/tokens.css";
 
+/* Bind Tailwind's `dark:` variant to our manual color-mode attribute. */
+@custom-variant dark (&:where([data-color-mode="dark"], [data-color-mode="dark"] *));
+
 @theme inline {
   --color-background: var(--bg-page);
   --color-foreground: var(--text-primary);
+  --color-surface: var(--bg-surface);
+  --color-tile: var(--bg-tile);
+  --color-muted: var(--text-muted);
+  --color-accent: var(--accent);
+  --color-border-soft: var(--border-soft);
   --font-sans: var(--font-body);
   --font-display: var(--font-display);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+}
+
+html {
+  color-scheme: light;
 }
 
 [data-color-mode="dark"] {
-  --bg-page: #1c1c1e;
-  --bg-tray: #2a2a2c;
-  --bg-tile: #3a3a3c;
-  --text-primary: #f5f5f0;
-  --text-muted: #a8a29e;
-  --border-soft: #4a4a4c;
-  --shadow-tray: 0 20px 50px rgba(0, 0, 0, 0.4),
-    inset 0 2px 4px rgba(255, 255, 255, 0.05);
+  color-scheme: dark;
 }
 
 body {
   background: var(--bg-page);
   color: var(--text-primary);
   font-family: var(--font-body), system-ui, sans-serif;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .font-display {
   font-family: var(--font-display), system-ui, sans-serif;
 }
 
+/* Text input used across auth + builder */
 .input-rect {
   width: 100%;
-  padding: 0.5rem 0.75rem;
-  border-radius: 0.5rem;
-  background: var(--bg-tile);
+  padding: 0.625rem 0.875rem;
+  border-radius: var(--radius-sm);
+  background: var(--bg-surface);
   border: 1px solid var(--border-soft);
-  font-size: 0.875rem;
-  line-height: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.4;
   color: var(--text-primary);
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.input-rect::placeholder {
+  color: var(--text-faint);
 }
 
 .input-rect:focus {
   outline: none;
-  box-shadow: 0 0 0 2px var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--ring);
 }

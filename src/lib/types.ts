@@ -1,123 +1,94 @@
-export type BoardSize = 3 | 4 | 5;
+// Goobin domain types (spec v2).
 
-export type BorderTier =
-  | "standard"
-  | "dualTone"
-  | "goldBlackout"
-  | "iridescentSecret";
+export type GridSize = 3 | 5;
 
-export type FreeSpaceState = "standard" | "impatient" | "glitched";
+export type BoardThemeId = "park" | "museum" | "zoo" | "city";
 
-export type ThemeId =
-  | "neon-pink"
-  | "electric-blue"
-  | "toxic-green"
-  | "warm-yellow"
-  | "coral-orange"
-  | "lavender";
+export const BOARD_THEME_IDS: BoardThemeId[] = [
+  "park",
+  "museum",
+  "zoo",
+  "city",
+];
 
-export interface BrushStroke {
-  points: number[];
-  color: string;
-  width: number;
-}
+export const GRID_SIZES: GridSize[] = [3, 5];
 
-export interface TextOverlay {
-  id: string;
-  text: string;
-  x: number;
-  y: number;
-  color: string;
-  fontSize: number;
-}
-
-export interface MarkupData {
-  brushStrokes: BrushStroke[];
-  textOverlays: TextOverlay[];
-  hasMarkup: boolean;
-}
-
-export interface Tile {
-  id: string;
-  index: number;
+/** A single bingo prompt. `details` is optional flavor text shown in the tile sheet. */
+export interface TileDef {
   prompt: string;
-  icon: string;
-  isFreeSpace: boolean;
-  photoUrl?: string;
-  markupData?: MarkupData;
-  completedAt?: string;
+  details?: string;
 }
 
-export interface FreeSpace {
-  tapCount: number;
-  state: FreeSpaceState;
-  secretClue?: string;
-}
-
-export interface CompletionStatus {
-  completedTiles: number;
-  completedLines: number;
-  isBlackout: boolean;
-  borderTier: BorderTier;
-  label: string;
-}
-
+/**
+ * Serialized board definition (stored in `boards.definition` jsonb).
+ * The center tile (index `(gridSize² − 1) / 2`) is the free space; its
+ * `TileDef` still carries a prompt for display but is auto-complete in play.
+ */
 export interface BoardDefinition {
+  v: 1;
   title: string;
-  themeId: ThemeId;
-  tiles: { prompt: string; icon: string }[];
-  /** Custom center tile (flair only; excluded from bingo lines when set). */
-  secretCenter?: { prompt: string; icon: string };
+  gridSize: GridSize;
+  theme: BoardThemeId;
+  tiles: TileDef[];
 }
 
-export interface Board {
+/** Client-only play progress, persisted in IndexedDB keyed by join code. */
+export interface PlayProgress {
+  code: string;
+  tiles: Record<number, { photoBlobId: string; completedAt: string }>;
+  celebratedLines: number;
+  celebratedBlackout: boolean;
+}
+
+/** Board as returned by the `get_board_by_code` RPC (never exposes user_id). */
+export interface BoardByCode {
   id: string;
   title: string;
-  size: BoardSize;
-  themeId: ThemeId;
-  tiles: Tile[];
-  freeSpace: FreeSpace;
-  /** When true, center tile is flair-only for line/blackout math */
-  hasSecretCenter?: boolean;
-  createdAt: string;
-  createdBy?: string;
-}
-
-export interface TileSessionData {
-  photoBlobId?: string;
-  markupData?: MarkupData;
-  completedAt?: string;
-  freeSpaceCompleted?: boolean;
-}
-
-export interface PlaySession {
-  boardId: string;
-  tiles: Record<string, TileSessionData>;
-}
-
-export type BoardStatus = "in_progress" | "completed";
-
-export interface BoardRecord {
-  id: string;
-  user_id: string;
-  title: string;
-  theme_id: ThemeId;
+  theme_id: BoardThemeId;
+  grid_size: GridSize;
   definition: BoardDefinition;
-  status: BoardStatus;
-  progress: PlaySession;
-  completed_at: string | null;
   latitude: number | null;
   longitude: number | null;
   location_label: string | null;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
+  join_code: string;
 }
 
-export interface CreateBoardInput {
+/** Own board row for the My Boards list (RLS-scoped select). */
+export interface OwnBoard {
+  id: string;
+  title: string;
+  theme_id: BoardThemeId;
+  grid_size: GridSize;
+  join_code: string;
+  is_public: boolean;
+  published_at: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
+  created_at: string;
+}
+
+/** Board row for `/boards/[id]` share/manage page (own board, full detail). */
+export interface OwnBoardDetail extends OwnBoard {
   definition: BoardDefinition;
-  latitude?: number;
-  longitude?: number;
-  location_label?: string;
-  is_public?: boolean;
+}
+
+/** Nearby public board from the `boards_nearby` RPC. */
+export interface NearbyBoard {
+  id: string;
+  title: string;
+  theme_id: BoardThemeId;
+  grid_size: GridSize;
+  join_code: string;
+  latitude: number;
+  longitude: number;
+  location_label: string | null;
+  distance_m: number;
+}
+
+/** A tagged location for a board. */
+export interface BoardLocation {
+  label: string;
+  lat: number;
+  lng: number;
 }

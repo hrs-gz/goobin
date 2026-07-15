@@ -1,6 +1,7 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
 import { AppProviders } from "@/providers/AppProviders";
+import { colorModeScript } from "@/providers/ColorModeProvider";
 import "./globals.css";
 
 const fredoka = Fredoka({
@@ -16,9 +17,21 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "goobin — experience bingo",
+  title: {
+    default: "goobin — photo bingo",
+    template: "%s — goobin",
+  },
   description:
-    "Turn outings and events into a shareable 5x5 photo bingo board.",
+    "Turn any outing into a shareable photo bingo board. Join with a code, snap photos, get bingo.",
+};
+
+export const viewport: Viewport = {
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f8f6f1" },
+    { media: "(prefers-color-scheme: dark)", color: "#15151a" },
+  ],
+  width: "device-width",
+  initialScale: 1,
 };
 
 export default function RootLayout({
@@ -32,6 +45,9 @@ export default function RootLayout({
       className={`${fredoka.variable} ${jakarta.variable} h-full antialiased`}
       suppressHydrationWarning
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: colorModeScript }} />
+      </head>
       <body className="min-h-dvh flex flex-col">
         <AppProviders>{children}</AppProviders>
       </body>
