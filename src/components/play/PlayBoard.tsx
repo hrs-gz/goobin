@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, Share2 } from "lucide-react";
 import { TileSheet } from "@/components/play/TileSheet";
+import { ExportSheet } from "@/components/export/ExportSheet";
 import { BoardThemePattern } from "@/components/board/BoardThemePattern";
 import { usePlayProgress } from "@/hooks/usePlayProgress";
 import { useColorMode } from "@/providers/ColorModeProvider";
@@ -13,7 +14,13 @@ import { celebrateBlackout, celebrateLine } from "@/lib/confetti";
 import { recordBoardOpen } from "@/lib/play/api";
 import type { BoardByCode } from "@/lib/types";
 
-export function PlayBoard({ board }: { board: BoardByCode }) {
+export function PlayBoard({
+  board,
+  origin,
+}: {
+  board: BoardByCode;
+  origin: string;
+}) {
   const { mode } = useColorMode();
   const theme = getBoardTheme(board.theme_id);
   const size = board.grid_size;
@@ -34,6 +41,7 @@ export function PlayBoard({ board }: { board: BoardByCode }) {
   } = usePlayProgress(board);
 
   const [selected, setSelected] = useState<number | null>(null);
+  const [exportOpen, setExportOpen] = useState(false);
 
   // Fire an "open" event once per browser session.
   useEffect(() => {
@@ -75,9 +83,19 @@ export function PlayBoard({ board }: { board: BoardByCode }) {
         >
           <ChevronLeft size={20} />
         </Link>
-        <span className="rounded-full bg-[var(--bg-tile)] px-3 py-1 font-mono text-sm tracking-widest text-[var(--text-muted)]">
-          {board.join_code}
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-[var(--bg-tile)] px-3 py-1 font-mono text-sm tracking-widest text-[var(--text-muted)]">
+            {board.join_code}
+          </span>
+          <button
+            type="button"
+            aria-label="Share board"
+            onClick={() => setExportOpen(true)}
+            className="grid h-9 w-9 place-items-center rounded-full text-[var(--text-muted)] hover:bg-[var(--bg-tile)]"
+          >
+            <Share2 size={18} />
+          </button>
+        </div>
       </div>
 
       <div className="text-center">
@@ -181,6 +199,14 @@ export function PlayBoard({ board }: { board: BoardByCode }) {
         onRemovePhoto={() => {
           if (selected !== null) void removePhoto(selected);
         }}
+      />
+
+      <ExportSheet
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+        board={board}
+        photoUrls={photoUrls}
+        origin={origin}
       />
     </div>
   );

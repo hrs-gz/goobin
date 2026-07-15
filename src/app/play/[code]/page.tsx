@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { notFound } from "next/navigation";
 import { AppHeader } from "@/components/AppHeader";
 import { PlayBoard } from "@/components/play/PlayBoard";
@@ -25,10 +26,15 @@ export default async function PlayPage(props: PageProps<"/play/[code]">) {
   const board = await getBoardByCode(code);
   if (!board) notFound();
 
+  const h = await headers();
+  const host = h.get("host") ?? "";
+  const proto = h.get("x-forwarded-proto") ?? "https";
+  const origin = host ? `${proto}://${host}` : "";
+
   return (
     <>
       <AppHeader />
-      <PlayBoard board={board} />
+      <PlayBoard board={board} origin={origin} />
     </>
   );
 }
