@@ -43,9 +43,15 @@ alter table public.boards
 alter table public.boards
   add column if not exists join_code text;
 
+-- SECURITY DEFINER so the uniqueness check sees ALL rows: this runs from the
+-- insert trigger as the inserting user, whose RLS view of boards is only their
+-- own rows — an invoker-rights check would miss collisions with other users'
+-- codes and surface as random unique-violation insert failures.
 create or replace function public.generate_join_code()
 returns text
 language plpgsql
+security definer
+set search_path = ''
 as $$
 declare
   candidate text;
@@ -209,6 +215,11 @@ as $$
   where b.user_id = (select auth.uid())
   group by b.id;
 $$;
+
+-- Helper is invoked by the before-insert trigger as the inserting role, so
+-- authenticated needs EXECUTE; anon never inserts boards and gets none.
+revoke all on function public.generate_join_code() from public, anon;
+grant execute on function public.generate_join_code() to authenticated;
 
 revoke all on function public.get_board_by_code(text) from public;
 revoke all on function public.record_board_open(text) from public;

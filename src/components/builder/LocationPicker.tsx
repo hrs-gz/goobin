@@ -130,7 +130,7 @@ export function LocationPicker({ value, onChange }: LocationPickerProps) {
             <Search size={16} />
           </span>
           <input
-            className="input-rect pl-9"
+            className="input-rect pl-9!"
             value={query}
             placeholder="Search for a place"
             onChange={(e) => setQuery(e.target.value)}

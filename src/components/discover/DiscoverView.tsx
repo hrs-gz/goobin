@@ -116,7 +116,7 @@ export function DiscoverView() {
               <Search size={16} />
             </span>
             <input
-              className="input-rect pl-9"
+              className="input-rect pl-9!"
               value={query}
               placeholder="Or search for a place"
               onChange={(e) => setQuery(e.target.value)}

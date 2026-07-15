@@ -38,7 +38,8 @@ body {
   font-family: var(--font-display), system-ui, sans-serif;
 }
 
-/* Text input used across auth + builder */
+/* Text input used across auth + builder. Emitted unlayered, so plain Tailwind
+   padding utilities lose to it — override with important (e.g. pl-9!). */
 .input-rect {
   width: 100%;
   padding: 0.625rem 0.875rem;
