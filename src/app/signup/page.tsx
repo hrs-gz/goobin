@@ -8,13 +8,13 @@ export default function SignupPage() {
         <div className="text-center">
           <h1 className="font-display text-2xl font-semibold">Create account</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Cloud-save boards and discover nearby games
+            Create boards, share codes, and list them on Discover
           </p>
         </div>
         <AuthForm mode="signup" />
         <p className="text-center text-sm">
           <Link href="/" className="text-[var(--text-muted)] hover:underline">
-            Back to demo
+            Back to home
           </Link>
         </p>
       </div>

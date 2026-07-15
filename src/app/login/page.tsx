@@ -16,13 +16,13 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
         <div className="text-center">
           <h1 className="font-display text-2xl font-semibold">Sign in</h1>
           <p className="text-sm text-[var(--text-muted)] mt-1">
-            Save boards and track your bingos
+            Sign in to create and share boards
           </p>
         </div>
         <AuthForm mode="login" redirectTo={redirectTo} />
         <p className="text-center text-sm">
           <Link href="/" className="text-[var(--text-muted)] hover:underline">
-            Back to demo
+            Back to home
           </Link>
         </p>
       </div>

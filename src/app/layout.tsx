@@ -17,12 +17,28 @@ const jakarta = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
+  metadataBase: process.env.NEXT_PUBLIC_SITE_URL
+    ? new URL(process.env.NEXT_PUBLIC_SITE_URL)
+    : undefined,
   title: {
     default: "goobin — photo bingo",
     template: "%s — goobin",
   },
   description:
     "Turn any outing into a shareable photo bingo board. Join with a code, snap photos, get bingo.",
+  applicationName: "goobin",
+  openGraph: {
+    type: "website",
+    siteName: "goobin",
+    title: "goobin — photo bingo",
+    description:
+      "Turn any outing into a shareable photo bingo board. Join with a code, snap photos, get bingo.",
+  },
+  twitter: {
+    card: "summary",
+    title: "goobin — photo bingo",
+    description: "Turn any outing into a shareable photo bingo board.",
+  },
 };
 
 export const viewport: Viewport = {

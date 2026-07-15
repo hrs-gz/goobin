@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
 import { createClient } from "@/lib/supabase/client";
 
 interface AuthFormProps {
@@ -76,29 +77,25 @@ export function AuthForm({ mode, redirectTo = "/boards" }: AuthFormProps) {
       {message && (
         <p className="text-sm text-[var(--text-muted)]">{message}</p>
       )}
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-3 squircle bg-[var(--accent)] text-white font-medium disabled:opacity-50"
-      >
+      <Button type="submit" size="lg" fullWidth disabled={loading}>
         {loading
-          ? "Please wait..."
+          ? "Please wait…"
           : mode === "login"
             ? "Sign in"
             : "Create account"}
-      </button>
+      </Button>
       <p className="text-sm text-center text-[var(--text-muted)]">
         {mode === "login" ? (
           <>
             No account?{" "}
-            <Link href="/signup" className="text-[var(--accent)] font-medium">
+            <Link href="/signup" className="text-[var(--accent-strong)] font-medium">
               Sign up
             </Link>
           </>
         ) : (
           <>
             Already have an account?{" "}
-            <Link href="/login" className="text-[var(--accent)] font-medium">
+            <Link href="/login" className="text-[var(--accent-strong)] font-medium">
               Sign in
             </Link>
           </>
