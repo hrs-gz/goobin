@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { Fredoka, Plus_Jakarta_Sans } from "next/font/google";
-import { AchievementToastHost } from "@/components/AchievementToastHost";
 import { AppProviders } from "@/providers/AppProviders";
 import "./globals.css";
 
@@ -34,10 +33,7 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body className="min-h-dvh flex flex-col">
-        <AppProviders>
-          {children}
-          <AchievementToastHost />
-        </AppProviders>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );
