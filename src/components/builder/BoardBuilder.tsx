@@ -5,12 +5,19 @@ import { Plus } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { BoardThemePattern } from "@/components/board/BoardThemePattern";
 import { TileEditSheet } from "@/components/builder/TileEditSheet";
+import { LocationPicker } from "@/components/builder/LocationPicker";
 import { createBoardAction } from "@/app/create/actions";
 import { BOARD_THEMES, boardThemeVars, getBoardTheme } from "@/lib/boardThemes";
 import { centerIndex } from "@/lib/bingo";
 import { useColorMode } from "@/providers/ColorModeProvider";
 import { BOARD_THEME_IDS, GRID_SIZES } from "@/lib/types";
-import type { BoardDefinition, BoardThemeId, GridSize, TileDef } from "@/lib/types";
+import type {
+  BoardDefinition,
+  BoardLocation,
+  BoardThemeId,
+  GridSize,
+  TileDef,
+} from "@/lib/types";
 
 function makeTiles(size: GridSize, previous?: TileDef[]): TileDef[] {
   const count = size * size;
@@ -29,6 +36,7 @@ export function BoardBuilder() {
   const [gridSize, setGridSize] = useState<GridSize>(5);
   const [theme, setTheme] = useState<BoardThemeId>("park");
   const [tiles, setTiles] = useState<TileDef[]>(() => makeTiles(5));
+  const [location, setLocation] = useState<BoardLocation | null>(null);
   const [editing, setEditing] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -70,7 +78,7 @@ export function BoardBuilder() {
       ),
     };
     startTransition(async () => {
-      const result = await createBoardAction(definition, null, false);
+      const result = await createBoardAction(definition, location, false);
       if (result?.error) setError(result.error);
     });
   };
@@ -209,6 +217,11 @@ export function BoardBuilder() {
             })}
           </div>
         </div>
+      </div>
+
+      {/* Location */}
+      <div className="mt-6">
+        <LocationPicker value={location} onChange={setLocation} />
       </div>
 
       {error && <p className="mt-4 text-sm text-[#c0563f]">{error}</p>}
