@@ -206,23 +206,21 @@
   position: relative;
   aspect-ratio: 1;
   margin: 0;
-  padding: 10px;
-  border: var(--cell-border);
+  padding: 8px;
+  border: 0;
   background: var(--cell-bg);
   color: var(--cell-ink);
   font-family: var(--sans);
   text-align: left;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 5px;
   overflow: hidden;
   cursor: pointer;
 }
 
 .cell[data-next="true"] {
-  background: var(--hot);
-  color: var(--hot-ink);
-  border: 1px solid var(--hot);
+  box-shadow: inset 0 0 0 3px currentColor;
 }
 
 .cell[data-filled="true"] {
@@ -246,7 +244,7 @@
 }
 
 .prompt {
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   line-height: 1.15;
 }
@@ -449,6 +447,40 @@
   font-family: var(--sans);
   font-size: 17px;
   padding: 0 12px;
+}
+
+.post {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.caption {
+  margin: 6px 0 0;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--line);
+  font-size: 15px;
+  line-height: 1.3;
+  user-select: all;
+  overflow-wrap: anywhere;
+}
+
+.postActions {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.postActions .secondary {
+  padding: 0 8px;
+}
+
+.note {
+  margin: 10px 0 0;
+  font-size: 14px;
+  line-height: 1.3;
 }
 
 .overlay {

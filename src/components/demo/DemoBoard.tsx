@@ -11,6 +11,17 @@ const BOARD_TITLE = "Non Slop hackathon";
 const COLLECTION = "COLLECTION 004";
 const STORAGE_KEY = "goobin-demo-non-slop-v1";
 
+// Sponsor tags for the drafted post, per platform. Pangram and Capy have no
+// known Instagram account, so they appear there as plain names.
+const SPONSOR_TAGS = {
+  x: ["@pangram", "@capydotai", "@trykino", "@paper"],
+  ig: ["Pangram", "Capy", "@try.kino", "@paper.design"],
+};
+
+function postText(platform: keyof typeof SPONSOR_TAGS): string {
+  return `who I found at nonslop hackathon ${SPONSOR_TAGS[platform].join(" ")}`;
+}
+
 const PROMPTS = [
   "Guy named Donald",
   "Someone cute",
@@ -41,6 +52,46 @@ const TREATMENTS = [
 ] as const;
 
 type TreatmentId = (typeof TREATMENTS)[number]["id"];
+
+const LIGHT = "#F8F7F2";
+const DARK = "#23282C";
+
+/** One [background, text] pair per square, drawn from each treatment's palette. */
+const SQUARE_COLORS: Record<TreatmentId, [string, string][]> = {
+  field: [
+    ["#315D50", LIGHT],
+    ["#E6AE65", DARK],
+    ["#769CAF", DARK],
+    ["#D87858", DARK],
+    ["#A8BE91", DARK],
+    ["#79423D", LIGHT],
+    ["#769CAF", DARK],
+    ["#315D50", LIGHT],
+    ["#E6AE65", DARK],
+  ],
+  city: [
+    ["#294BC7", LIGHT],
+    ["#929CA3", DARK],
+    ["#F4F4F0", DARK],
+    ["#BCA6C9", DARK],
+    ["#D5D7D8", DARK],
+    ["#294BC7", LIGHT],
+    ["#929CA3", DARK],
+    ["#F4F4F0", DARK],
+    ["#BCA6C9", DARK],
+  ],
+  studio: [
+    ["#D4E85C", DARK],
+    ["#929CA3", DARK],
+    ["#252D3B", LIGHT],
+    ["#C7C2B8", DARK],
+    ["#23282C", LIGHT],
+    ["#D4E85C", DARK],
+    ["#BCA6C9", DARK],
+    ["#D5D7D8", DARK],
+    ["#929CA3", DARK],
+  ],
+};
 type Photos = (string | null)[];
 
 interface SavedState {
@@ -73,6 +124,8 @@ export function DemoBoard() {
   const [loaded, setLoaded] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [note, setNote] = useState<string | null>(null);
+  const [print, setPrint] = useState<{ key: string; blob: Blob } | null>(null);
   const [today, setToday] = useState("");
 
   const fileInput = useRef<HTMLInputElement>(null);
@@ -202,6 +255,96 @@ export function DemoBoard() {
     }
   }, [renderPrint]);
 
+  const printKey = `${treatment}|${name}|${today}|${photos.map((p) => (p ? p.length : 0)).join(",")}`;
+
+  // Render the print ahead of time so a post button can hand the image over
+  // inside the tap itself (share sheets and the clipboard need a fresh tap).
+  useEffect(() => {
+    if (view !== "print") return;
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      renderPrint()
+        .then((blob) => {
+          if (!cancelled && blob) setPrint({ key: printKey, blob });
+        })
+        .catch(() => {});
+    }, 350);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [view, printKey, renderPrint]);
+
+  // Only use a rendered print that matches what is on screen now.
+  const printBlob = print && print.key === printKey ? print.blob : null;
+
+  const postTo = useCallback(
+    async (platform: "x" | "ig") => {
+      const label = platform === "x" ? "X" : "Instagram";
+      const text = postText(platform);
+      setError(null);
+      setNote(null);
+      if (!printBlob) {
+        setNote("Still preparing your print. Try again in a second.");
+        return;
+      }
+      const file = new File([printBlob], "goobin-non-slop-hackathon.png", { type: "image/png" });
+      const onPhone = window.matchMedia("(pointer: coarse)").matches;
+
+      try {
+        if (onPhone && navigator.canShare?.({ files: [file] })) {
+          // Phone: the share sheet carries the image straight into the app.
+          let copied = false;
+          try {
+            await navigator.clipboard.writeText(text);
+            copied = true;
+          } catch {
+            copied = false;
+          }
+          setNote(
+            `Pick ${label} in the share sheet. ${copied ? "The caption is copied if it needs pasting." : "Copy the caption above if it's missing."}`
+          );
+          await navigator.share(platform === "x" ? { files: [file], text } : { files: [file] });
+          return;
+        }
+
+        if (platform === "x") {
+          // Computer: open the draft and put the image on the clipboard to paste in.
+          window.open(
+            `https://x.com/intent/post?text=${encodeURIComponent(text)}`,
+            "_blank",
+            "noopener,noreferrer"
+          );
+          try {
+            await navigator.clipboard.write([new ClipboardItem({ "image/png": printBlob })]);
+            setNote("Draft opened in X with your print copied. Paste it into the post.");
+          } catch {
+            downloadBlob(printBlob, "goobin-non-slop-hackathon.png");
+            setNote("Draft opened in X. Your print was saved: attach it to the post.");
+          }
+          return;
+        }
+
+        let copied = false;
+        try {
+          await navigator.clipboard.writeText(text);
+          copied = true;
+        } catch {
+          copied = false;
+        }
+        downloadBlob(printBlob, "goobin-non-slop-hackathon.png");
+        setNote(
+          `Print saved${copied ? " and caption copied" : ""}. Instagram only takes posts from its app, so open this page on your phone to send the image straight in.`
+        );
+      } catch (err) {
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          setError(`Couldn't hand the print to ${label}. Try saving it instead.`);
+        }
+      }
+    },
+    [printBlob]
+  );
+
   const openPhoto = openIndex !== null ? photos[openIndex] : null;
 
   return (
@@ -255,6 +398,11 @@ export function DemoBoard() {
                     className={styles.cell}
                     data-filled={photo ? "true" : "false"}
                     data-next={isNext ? "true" : "false"}
+                    style={
+                      photo
+                        ? undefined
+                        : { background: SQUARE_COLORS[treatment][i][0], color: SQUARE_COLORS[treatment][i][1] }
+                    }
                     onClick={() => (photo ? setOpenIndex(i) : pickPhoto(i))}
                     aria-label={
                       photo ? `Square ${i + 1}, ${prompt}, photo added` : `Square ${i + 1}, ${prompt}, add a photo`
@@ -325,7 +473,10 @@ export function DemoBoard() {
                 <div className={styles.printGrid}>
                   {PROMPTS.map((prompt, i) => (
                     <div key={prompt} className={styles.printCell}>
-                      <div className={styles.printPhoto}>
+                      <div
+                        className={styles.printPhoto}
+                        style={photos[i] ? undefined : { background: SQUARE_COLORS[treatment][i][0] }}
+                      >
                         {photos[i] ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img src={photos[i] as string} alt="" className={styles.photo} />
@@ -365,6 +516,37 @@ export function DemoBoard() {
                 Save
               </button>
             </div>
+
+            <div className={styles.post}>
+              <div className={styles.fieldLabel}>POST IT</div>
+              <p className={styles.caption}>{postText("x")}</p>
+              <div className={styles.postActions}>
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  disabled={busy}
+                  onClick={() => postTo("x")}
+                  aria-label="Post to X"
+                >
+                  X
+                </button>
+                <button
+                  type="button"
+                  className={styles.secondary}
+                  disabled={busy}
+                  onClick={() => postTo("ig")}
+                  aria-label="Post to Instagram"
+                >
+                  IG
+                </button>
+              </div>
+              {note ? (
+                <p className={styles.note} aria-live="polite">
+                  {note}
+                </p>
+              ) : null}
+            </div>
+
             <div className={styles.links}>
               <button type="button" className={styles.link} onClick={() => setView("board")}>
                 Back to board
