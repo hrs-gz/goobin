@@ -17,6 +17,7 @@ Strava (streaks, profile, a shareable record of what you did).
 | --- | --- |
 | Platform | Mobile web app. Guests join from a code or link with no install. |
 | Play style | Host picks per game: live timed race or open-ended own pace. |
+| Board size | 3×3, nine prompts, no free square. Chosen so squares and photos have room; replaces the 5×5 board with a free centre. |
 | Win rule | Host picks per game: one line, blackout, or points. |
 | Photo verification | Honor system. Any photo fills the square; other players can react or flag. |
 | Location branding | Three built-in board treatments (Field Notes, City Notes, Studio Notes) chosen by place type. The place name is printed on the keepsake. No venue partnerships at launch. |
@@ -59,7 +60,7 @@ photo proportions never change between them.
 
 The host can override the default. Which treatment parties default to is undecided.
 
-**Shared conventions.** Squares are numbered 01–25. Boards carry a collection number
+**Shared conventions.** Squares are numbered 01–09. Boards carry a collection number
 ("GOOBIN / COLLECTION 004"). Achievements are printed seals rather than rubber stamps.
 
 **Export templates.** Chosen at export, independent of the play treatment: field journal,
@@ -70,7 +71,7 @@ The current app (dark theme, Fredoka + Plus Jakarta Sans) predates this directio
 ## Core loop
 
 1. **Join.** Enter a six-digit game code and a display name. No account needed to play.
-2. **Play.** A 5×5 grid of prompts with a free centre square. Tap a square, take a
+2. **Play.** A 3×3 grid of nine prompts, no free square. Tap a square, take a
    selfie, add an optional caption, stick it on the board.
 3. **Finish.** Hit the host's win rule, or fill the board.
 4. **Keep.** Get a themed keepsake image of the finished board with the place and date.
@@ -85,7 +86,7 @@ The current app (dark theme, Fredoka + Plus Jakarta Sans) predates this directio
 - Everyone's photos visible to players in the same game; reactions and flags.
 
 ### Boards
-- 5×5 with free space (exists).
+- 3×3, nine prompts, no free space (the app is 5×5 with a free space today).
 - Custom boards: write your own prompts (exists via `/build`).
 - AI-drafted prompts for the chosen theme; the creator keeps, edits or discards each one (new).
 - Optional location pin so people nearby can discover the board (discover exists; pin-at-create is new).
@@ -104,6 +105,20 @@ The current app (dark theme, Fredoka + Plus Jakarta Sans) predates this directio
 - Scrapbook of past keepsakes.
 - Collections: past boards, numbered, shown in their treatment.
 - Seals (achievements shown as printed seals).
+
+### Demo board
+
+The nine prompts used for the demo board and in the mockups, in square order:
+
+1. guy named donald
+2. someone cute
+3. someone w glasses
+4. someone with red hair
+5. someone much taller than u
+6. someone wearing a hat
+7. someone with a tuff fit
+8. someone with nice shoes
+9. someone doing a handstand
 
 ## What already exists in this repo
 
@@ -124,6 +139,7 @@ The current app (dark theme, Fredoka + Plus Jakarta Sans) predates this directio
 8. Streaks and the redesigned profile.
 9. Goobin feed.
 10. Visual restyle of the app to Editorial Fieldwork.
+11. Move the board from 5×5 to 3×3: grid, line detection, free-space logic and its easter egg, existing saved boards, and achievement thresholds that assume 25 squares.
 
 ## Open questions
 
@@ -133,6 +149,8 @@ The current app (dark theme, Fredoka + Plus Jakarta Sans) predates this directio
 - Photo privacy: who can see a game's photos after it ends, and for how long are they kept?
 - Maximum players per game for the first release.
 - Which treatment a party board defaults to.
+- With nine squares a one-line win takes three photos. Is that too short for a live race, and should blackout be the default there?
+- What happens to boards already saved as 5×5?
 - Layout of the specimen archive export template (not yet designed).
 
 ## Mockups
