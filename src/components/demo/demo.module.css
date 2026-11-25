@@ -1,0 +1,490 @@
+.root {
+  --mono: var(--font-plex-mono), ui-monospace, monospace;
+  --sans: var(--font-grotesk), system-ui, sans-serif;
+  --serif: var(--font-fraunces), Georgia, serif;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+.root[data-t="field"] {
+  --bg: #eae7d5;
+  --surface: #f8f7f2;
+  --ink: #23282c;
+  --muted: #555b52;
+  --line: #315d50;
+  --accent: #315d50;
+  --accent-ink: #ffffff;
+  --hot: #e6ae65;
+  --hot-ink: #23282c;
+  --grid-bg: #f8f7f2;
+  --grid-gap: 10px;
+  --cell-bg: #eae7d5;
+  --cell-ink: #23282c;
+  --cell-border: 1px dashed #777d73;
+  --head-font: var(--serif);
+  --head-case: none;
+  --note-font: var(--serif);
+  --note-style: italic;
+  --radius: 10px;
+  --print-bg: #f8f7f2;
+  --print-ink: #23282c;
+  --print-head-bg: #315d50;
+  --print-head-ink: #ffffff;
+  --print-head-pad: 10px 12px;
+  --print-empty: #eae7d5;
+}
+
+.root[data-t="city"] {
+  --bg: #d5d7d8;
+  --surface: #f4f4f0;
+  --ink: #23282c;
+  --muted: #3f464b;
+  --line: #23282c;
+  --accent: #294bc7;
+  --accent-ink: #ffffff;
+  --hot: #294bc7;
+  --hot-ink: #ffffff;
+  --grid-bg: #23282c;
+  --grid-gap: 6px;
+  --cell-bg: #23282c;
+  --cell-ink: #f4f4f0;
+  --cell-border: 1px solid #929ca3;
+  --head-font: var(--sans);
+  --head-case: uppercase;
+  --note-font: var(--sans);
+  --note-style: normal;
+  --radius: 0px;
+  --print-bg: #23282c;
+  --print-ink: #f4f4f0;
+  --print-head-bg: #23282c;
+  --print-head-ink: #f4f4f0;
+  --print-head-pad: 4px 0;
+  --print-empty: #3f464b;
+}
+
+.root[data-t="studio"] {
+  --bg: #f4f4f0;
+  --surface: #f8f7f2;
+  --ink: #23282c;
+  --muted: #555b52;
+  --line: #23282c;
+  --accent: #23282c;
+  --accent-ink: #f4f4f0;
+  --hot: #d4e85c;
+  --hot-ink: #23282c;
+  --grid-bg: #f8f7f2;
+  --grid-gap: 10px;
+  --cell-bg: #f8f7f2;
+  --cell-ink: #23282c;
+  --cell-border: 1px solid #929ca3;
+  --head-font: var(--sans);
+  --head-case: none;
+  --note-font: var(--mono);
+  --note-style: normal;
+  --radius: 2px;
+  --print-bg: #f8f7f2;
+  --print-ink: #23282c;
+  --print-head-bg: #f8f7f2;
+  --print-head-ink: #23282c;
+  --print-head-pad: 4px 0;
+  --print-empty: #d5d7d8;
+}
+
+.column {
+  max-width: 430px;
+  margin: 0 auto;
+  min-height: 100dvh;
+  box-sizing: border-box;
+  padding: 18px 16px 22px;
+  display: flex;
+  flex-direction: column;
+}
+
+.strip,
+.printStrip,
+.sheetStrip {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.header {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.headText {
+  flex: 1;
+  min-width: 0;
+}
+
+.title {
+  margin: 0;
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.05;
+  letter-spacing: -0.5px;
+  text-transform: var(--head-case);
+}
+
+.meta {
+  margin-top: 5px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.5px;
+}
+
+.counter {
+  flex-shrink: 0;
+  background: var(--ink);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 18px;
+  padding: 8px 10px;
+}
+
+.switcher {
+  margin-top: 12px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.switch {
+  height: 44px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 500;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.switch:first-child {
+  border-left: 0;
+}
+
+.switch[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: 700;
+}
+
+.status {
+  margin: 14px 0 0;
+  font-family: var(--note-font);
+  font-style: var(--note-style);
+  font-weight: 500;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.grid {
+  margin-top: 10px;
+  background: var(--grid-bg);
+  border: 1px solid var(--line);
+  padding: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--grid-gap);
+}
+
+.cell {
+  position: relative;
+  aspect-ratio: 1;
+  margin: 0;
+  padding: 10px;
+  border: var(--cell-border);
+  background: var(--cell-bg);
+  color: var(--cell-ink);
+  font-family: var(--sans);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.cell[data-next="true"] {
+  background: var(--hot);
+  color: var(--hot-ink);
+  border: 1px solid var(--hot);
+}
+
+.cell[data-filled="true"] {
+  padding: 0;
+  border: 0;
+}
+
+.cell:focus-visible,
+.switch:focus-visible,
+.primary:focus-visible,
+.secondary:focus-visible,
+.link:focus-visible,
+.input:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.no {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.prompt {
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.15;
+}
+
+.cell[data-next="true"] .prompt {
+  font-weight: 700;
+}
+
+.photo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.chip {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  line-height: 1;
+  padding: 4px 6px;
+}
+
+.error {
+  margin: 10px 0 0;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 10px;
+}
+
+.primary,
+.secondary {
+  height: 56px;
+  border-radius: var(--radius);
+  font-family: var(--sans);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.primary {
+  flex: 1;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-size: 18px;
+}
+
+.secondary {
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  color: var(--ink);
+  font-size: 15px;
+}
+
+.primary:disabled,
+.secondary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.links {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.link {
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.printWrap {
+  margin-top: 12px;
+  padding: 0 14px;
+}
+
+.print {
+  background: var(--print-bg);
+  color: var(--print-ink);
+  border: 1px solid var(--line);
+  padding: 12px;
+}
+
+.printHead {
+  margin-top: 8px;
+  background: var(--print-head-bg);
+  color: var(--print-head-ink);
+  padding: var(--print-head-pad);
+}
+
+.printTitle {
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.5px;
+  text-transform: var(--head-case);
+}
+
+.printMeta {
+  margin-top: 5px;
+  min-height: 13px;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.printGrid {
+  margin-top: 10px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.printCell {
+  min-width: 0;
+}
+
+.printPhoto {
+  position: relative;
+  aspect-ratio: 1;
+  background: var(--print-empty);
+  overflow: hidden;
+}
+
+.printLabel {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.2;
+  min-height: 24px;
+}
+
+.printLabel span {
+  font-family: var(--mono);
+}
+
+.printFoot {
+  margin-top: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+
+.wordmark {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: 18px;
+  letter-spacing: -0.5px;
+}
+
+.field {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.fieldLabel {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+
+.input {
+  height: 48px;
+  box-sizing: border-box;
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  background: var(--surface);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  padding: 0 12px;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(35, 40, 44, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.sheet {
+  width: 100%;
+  max-width: 360px;
+  background: var(--surface);
+  color: var(--ink);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sheetPhoto {
+  margin-top: 8px;
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+
+.sheetPrompt {
+  margin-top: 10px;
+  font-family: var(--head-font);
+  font-weight: 700;
+  font-size: 22px;
+  line-height: 1.1;
+  text-transform: var(--head-case);
+}
